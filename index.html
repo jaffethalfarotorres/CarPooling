@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IBM RideMatch — Carpool to AFZ Building F30</title>
+  <meta name="description"
+    content="IBM Costa Rica carpooling app. Find or offer rides to IBM AFZ Building F30, Heredia. Match with coworkers on similar commute routes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- ===== AUTH SCREEN ===== -->
+  <div id="auth-screen" class="screen active">
+    <div class="auth-container">
+      <div class="auth-brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="56" height="56">
+            <rect width="48" height="48" rx="12" fill="var(--ibm-blue)" />
+            <path
+              d="M14 16h6v2h-6zM14 20h6v2h-6zM14 24h6v2h-6zM14 28h6v2h-6zM14 32h6v2h-6zM28 16h6v2h-6zM28 20h6v2h-6zM28 24h6v2h-6zM28 28h6v2h-6zM28 32h6v2h-6zM22 16h4v2h-4zM20 20h8v2h-8zM22 24h4v2h-4zM20 28h8v2h-8zM22 32h4v2h-4z"
+              fill="white" />
+          </svg>
+        </div>
+        <h1>RideMatch</h1>
+        <p class="brand-subtitle">IBM Costa Rica — AFZ Building F30, Heredia</p>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-form" class="auth-form glass-card">
+        <h2>Welcome Back</h2>
+        <p class="form-desc">Sign in with your IBM email</p>
+        <div class="form-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" placeholder="your.name@ibm.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button id="login-btn" class="btn btn-primary btn-full">Sign In</button>
+        <p class="auth-switch">Don't have an account? <a href="#" id="show-register">Create one</a></p>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" class="auth-form glass-card hidden">
+        <h2>Create Account</h2>
+        <p class="form-desc">Join RideMatch with your IBM email</p>
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input type="text" id="reg-name" placeholder="e.g. María García" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="reg-email">IBM Email</label>
+          <input type="email" id="reg-email" placeholder="your.name@ibm.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="reg-phone">Phone (optional)</label>
+          <input type="tel" id="reg-phone" placeholder="+506 8888-8888" autocomplete="tel" />
+        </div>
+        <div class="form-group">
+          <label for="reg-neighborhood">Your Neighborhood / Area</label>
+          <input type="text" id="reg-neighborhood" placeholder="e.g. San José Centro, Escazú, Alajuela..." />
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" placeholder="At least 6 characters" autocomplete="new-password" />
+        </div>
+        <button id="register-btn" class="btn btn-primary btn-full">Create Account</button>
+        <p class="auth-switch">Already have an account? <a href="#" id="show-login">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
+  <div id="app-screen" class="screen">
+    <!-- Top Navbar -->
+    <nav id="navbar" class="navbar glass-nav">
+      <div class="nav-brand">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+          <rect width="48" height="48" rx="12" fill="var(--ibm-blue)" />
+          <path
+            d="M14 16h6v2h-6zM14 20h6v2h-6zM14 24h6v2h-6zM14 28h6v2h-6zM14 32h6v2h-6zM28 16h6v2h-6zM28 20h6v2h-6zM28 24h6v2h-6zM28 28h6v2h-6zM28 32h6v2h-6zM22 16h4v2h-4zM20 20h8v2h-8zM22 24h4v2h-4zM20 28h8v2h-8zM22 32h4v2h-4z"
+            fill="white" />
+        </svg>
+        <span>RideMatch</span>
+      </div>
+      <div class="nav-user">
+        <button id="profile-btn" class="nav-user-btn" title="My Profile">
+          <span id="nav-user-name"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </button>
+        <button id="logout-btn" class="btn btn-ghost btn-sm" title="Sign Out">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Page Container -->
+    <main id="main-content" class="main-content">
+
+      <!-- === DASHBOARD === -->
+      <section id="page-dashboard" class="page active">
+        <div class="page-header">
+          <h1 id="dashboard-greeting">Good morning!</h1>
+          <p class="page-subtitle">Your ride overview for today</p>
+        </div>
+        <div class="quick-actions">
+          <button class="action-card glass-card" id="quick-offer">
+            <div class="action-icon offer-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="16" />
+                <line x1="8" y1="12" x2="16" y2="12" />
+              </svg>
+            </div>
+            <span class="action-label">Offer a Ride</span>
+            <span class="action-desc">Share your commute</span>
+          </button>
+          <button class="action-card glass-card" id="quick-find">
+            <div class="action-icon find-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
+            <span class="action-label">Find a Ride</span>
+            <span class="action-desc">Search available rides</span>
+          </button>
+          <button class="action-card glass-card" id="quick-myrides">
+            <div class="action-icon myrides-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </div>
+            <span class="action-label">My Rides</span>
+            <span class="action-desc">Manage your trips</span>
+          </button>
+        </div>
+
+        <div class="dashboard-section">
+          <h2>Upcoming Rides</h2>
+          <div id="dashboard-upcoming" class="ride-list">
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+              </svg>
+              <p>No upcoming rides yet</p>
+              <span>Offer or find a ride to get started!</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-section">
+          <h2>Recent Notifications</h2>
+          <div id="dashboard-notifications" class="notification-list">
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 01-3.46 0" />
+              </svg>
+              <p>No notifications</p>
+              <span>You're all caught up!</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- === OFFER A RIDE === -->
+      <section id="page-offer" class="page">
+        <div class="page-header">
+          <h1>Offer a Ride</h1>
+          <p class="page-subtitle">Share your commute with coworkers</p>
+        </div>
+        <form id="offer-form" class="glass-card form-card">
+          <div class="offer-route">
+            <div class="form-group" style="margin-bottom:0">
+              <label for="offer-from">
+                <span class="route-dot route-dot-from"></span> From
+              </label>
+              <input type="text" id="offer-from" placeholder="Your pickup location..." autocomplete="off" />
+            </div>
+            <div class="offer-swap-row">
+              <div class="offer-route-line"></div>
+              <button type="button" id="offer-swap" class="offer-swap-btn" title="Swap locations">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                </svg>
+              </button>
+              <div class="offer-route-line"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label for="offer-to">
+                <span class="route-dot route-dot-to"></span> To
+              </label>
+              <input type="text" id="offer-to" placeholder="Destination..." autocomplete="off" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="offer-date">Date</label>
+              <input type="date" id="offer-date" />
+            </div>
+            <div class="form-group">
+              <label for="offer-time">Departure Time</label>
+              <input type="time" id="offer-time" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="offer-seats">Available Seats</label>
+            <select id="offer-seats">
+              <option value="1">1 seat</option>
+              <option value="2">2 seats</option>
+              <option value="3" selected>3 seats</option>
+              <option value="4">4 seats</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="offer-notes">Notes (optional)</label>
+            <textarea id="offer-notes" rows="3"
+              placeholder="e.g. I pass by La Sabana, pick up near McDonald's..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Post Ride</button>
+        </form>
+      </section>
+
+      <!-- === FIND A RIDE === -->
+      <section id="page-find" class="page">
+        <div class="page-header">
+          <h1>Find a Ride</h1>
+          <p class="page-subtitle">Browse available carpool rides</p>
+        </div>
+        <div class="filter-bar glass-card">
+          <div class="filter-group">
+            <select id="filter-direction">
+              <option value="all">All directions</option>
+              <option value="to-ibm">🏢 Going to IBM</option>
+              <option value="from-ibm">🏠 Going home</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <input type="text" id="filter-search" placeholder="🔍 Search by neighborhood..." />
+          </div>
+          <div class="filter-group">
+            <input type="date" id="filter-date" />
+          </div>
+        </div>
+        <div id="rides-list" class="ride-list">
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <p>No rides available</p>
+            <span>Check back later or offer your own ride!</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- === MY RIDES === -->
+      <section id="page-myrides" class="page">
+        <div class="page-header">
+          <h1>My Rides</h1>
+          <p class="page-subtitle">Manage your ride offers and requests</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-tab="my-offers">My Offers</button>
+          <button class="tab" data-tab="my-requests">My Requests</button>
+          <button class="tab" data-tab="my-history">History</button>
+        </div>
+        <div id="tab-my-offers" class="tab-content active">
+          <div id="my-offers-list" class="ride-list">
+            <div class="empty-state">
+              <p>You haven't offered any rides yet</p>
+              <span>Share your commute with coworkers!</span>
+            </div>
+          </div>
+        </div>
+        <div id="tab-my-requests" class="tab-content">
+          <div id="my-requests-list" class="ride-list">
+            <div class="empty-state">
+              <p>No pending requests</p>
+              <span>Find and request a ride to see it here.</span>
+            </div>
+          </div>
+        </div>
+        <div id="tab-my-history" class="tab-content">
+          <div id="my-history-list" class="ride-list">
+            <div class="empty-state">
+              <p>No ride history yet</p>
+              <span>Your past rides will appear here.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- === NOTIFICATIONS === -->
+      <section id="page-notifications" class="page">
+        <div class="page-header">
+          <h1>Notifications</h1>
+          <p class="page-subtitle">Stay updated on your rides</p>
+        </div>
+        <div id="notifications-list" class="notification-list">
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <p>No notifications</p>
+            <span>You're all caught up!</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navbar (mobile-first) -->
+    <nav id="bottom-nav" class="bottom-nav glass-nav">
+      <button class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" data-page="find" id="nav-find">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>Find</span>
+      </button>
+      <button class="nav-item" data-page="offer" id="nav-offer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="16" />
+          <line x1="8" y1="12" x2="16" y2="12" />
+        </svg>
+        <span>Offer</span>
+      </button>
+      <button class="nav-item" data-page="myrides" id="nav-myrides">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span>My Rides</span>
+      </button>
+      <button class="nav-item" data-page="notifications" id="nav-notifications">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+        <span>Alerts</span>
+        <span id="notif-badge" class="badge hidden">0</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== RIDE DETAIL MODAL ===== -->
+  <div id="ride-modal" class="modal-overlay hidden">
+    <div class="modal glass-card">
+      <button id="modal-close" class="modal-close">&times;</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ===== TRIP TRACKING OVERLAY ===== -->
+  <div id="tracking-overlay" class="tracking-overlay hidden">
+    <div class="tracking-header glass-nav">
+      <button id="tracking-close" class="tracking-close-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+      </button>
+      <h2>Trip Tracking</h2>
+      <div class="tracking-mode-toggle">
+        <button class="tracking-mode active" data-mode="demo" id="mode-demo">Demo</button>
+        <button class="tracking-mode" data-mode="live" id="mode-live">Live GPS</button>
+      </div>
+    </div>
+    <div id="tracking-map" class="tracking-map"></div>
+    <div class="tracking-panel glass-card">
+      <div class="tracking-stats">
+        <div class="tracking-stat">
+          <span class="tracking-label">ETA</span>
+          <span id="tracking-eta" class="tracking-value">--</span>
+        </div>
+        <div class="tracking-stat">
+          <span class="tracking-label">Distance</span>
+          <span id="tracking-distance" class="tracking-value">--</span>
+        </div>
+        <div class="tracking-stat">
+          <span class="tracking-label">Speed</span>
+          <span id="tracking-speed" class="tracking-value">--</span>
+        </div>
+      </div>
+      <div class="tracking-progress">
+        <div class="tracking-progress-bar">
+          <div id="tracking-progress-fill" class="tracking-progress-fill"></div>
+        </div>
+        <span id="tracking-progress-text" class="tracking-progress-text">0% complete</span>
+      </div>
+      <div class="tracking-actions">
+        <button id="tracking-start" class="btn btn-primary btn-full">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          Start Tracking
+        </button>
+        <button id="tracking-stop" class="btn btn-danger btn-full hidden">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="1" />
+          </svg>
+          Stop Tracking
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PROFILE MODAL ===== -->
+  <div id="profile-modal" class="modal-overlay hidden">
+    <div class="modal glass-card">
+      <button id="profile-modal-close" class="modal-close">&times;</button>
+      <div class="modal-ride-header">
+        <h2>My Profile</h2>
+        <span class="direction-tag">⚙️ Settings</span>
+      </div>
+      <form id="profile-form">
+        <div class="form-group">
+          <label for="profile-name">Full Name</label>
+          <input type="text" id="profile-name" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="profile-email">IBM Email</label>
+          <input type="email" id="profile-email" disabled style="opacity:0.5;cursor:not-allowed" />
+        </div>
+        <div class="form-group">
+          <label for="profile-phone">Phone (optional)</label>
+          <input type="tel" id="profile-phone" placeholder="+506 8888-8888" autocomplete="tel" />
+        </div>
+        <div class="form-group">
+          <label for="profile-neighborhood">Neighborhood / Area</label>
+          <input type="text" id="profile-neighborhood" placeholder="e.g. Escazú, San José..." />
+        </div>
+        <hr style="border-color:var(--border-color);margin:var(--sp-4) 0" />
+        <p style="font-size:var(--fs-sm);color:var(--text-muted);margin-bottom:var(--sp-3)">Leave password blank to keep current password</p>
+        <div class="form-group">
+          <label for="profile-new-password">New Password</label>
+          <input type="password" id="profile-new-password" placeholder="At least 6 characters" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label for="profile-confirm-password">Confirm New Password</label>
+          <input type="password" id="profile-confirm-password" placeholder="Repeat new password" autocomplete="new-password" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" style="margin-top:var(--sp-2)">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== RIDE CHAT OVERLAY ===== -->
+  <div id="chat-overlay" class="chat-overlay hidden">
+    <div class="chat-header glass-nav">
+      <button id="chat-close" class="tracking-close-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+      </button>
+      <div class="chat-header-info">
+        <h2 id="chat-title">Group Chat</h2>
+        <span id="chat-subtitle" class="page-subtitle"></span>
+      </div>
+    </div>
+    <div id="chat-messages" class="chat-messages"></div>
+    <div class="chat-input-bar glass-nav">
+      <input type="text" id="chat-input" placeholder="Type a message to coordinate pickup..." autocomplete="off" />
+      <button id="chat-send" class="btn btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Firebase SDK (used when FIREBASE_CONFIG is set in app.js) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbj0WiyEgqdgYT6gcjxWp6beKf-F_ExuQ&libraries=places,geometry"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

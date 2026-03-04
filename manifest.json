@@ -1,0 +1,21 @@
+{
+  "name": "IBM RideMatch",
+  "short_name": "RideMatch",
+  "description": "Carpooling app for IBM Costa Rica — AFZ Building F30, Heredia",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1117",
+  "theme_color": "#0f62fe",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["transportation", "social"],
+  "lang": "en",
+  "scope": "./"
+}
