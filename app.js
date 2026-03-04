@@ -169,6 +169,7 @@
   function init() {
     if (currentUser) {
       showApp();
+      updatePointsDisplay(); // Update points counter in navbar
     } else {
       showAuth();
     }
@@ -261,6 +262,10 @@
       phone,
       neighborhood,
       password,
+      points: 0,
+      badges: [],
+      ridesCompleted: 0,
+      ridesOffered: 0,
       createdAt: new Date().toISOString(),
     };
 
@@ -1581,7 +1586,64 @@
     $('#profile-neighborhood').value = currentUser.neighborhood || '';
     $('#profile-new-password').value = '';
     $('#profile-confirm-password').value = '';
+
+    // Update rewards display
+    renderProfileRewards();
+
     $('#profile-modal').classList.remove('hidden');
+  }
+
+  function renderProfileRewards() {
+    if (!currentUser) return;
+
+    const points = currentUser.points || 0;
+    const badges = currentUser.badges || [];
+    const ridesCompleted = currentUser.ridesCompleted || 0;
+
+    // Update points display
+    $('#profile-points-display').textContent = points.toLocaleString();
+
+    // Render badges
+    const badgesContainer = $('#profile-badges');
+    badgesContainer.innerHTML = '';
+
+    BADGES.forEach(badge => {
+      const earned = badges.includes(badge.id);
+      const badgeEl = document.createElement('div');
+      badgeEl.className = 'badge-card' + (earned ? ' earned' : ' locked');
+      badgeEl.innerHTML = `
+        <div class="badge-icon">${earned ? badge.name.split(' ')[0] : '🔒'}</div>
+        <div class="badge-info">
+          <div class="badge-name">${badge.name.substring(2)}</div>
+          <div class="badge-desc">${badge.desc}</div>
+        </div>
+      `;
+      badgesContainer.appendChild(badgeEl);
+    });
+
+    // Show progress to next badge
+    const nextBadge = getNextBadge(currentUser);
+    const progressContainer = $('#next-badge-progress');
+
+    if (nextBadge) {
+      progressContainer.innerHTML = `
+        <div style="font-size: var(--fs-sm); color: var(--text-secondary); margin-bottom: var(--sp-2);">
+          Next: <strong>${nextBadge.name}</strong> (${nextBadge.remaining} more rides)
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${nextBadge.progress}%"></div>
+        </div>
+        <div style="font-size: var(--fs-xs); color: var(--text-muted); margin-top: var(--sp-1); text-align: right;">
+          ${ridesCompleted} / ${nextBadge.requiredRides} rides
+        </div>
+      `;
+    } else {
+      progressContainer.innerHTML = `
+        <div style="text-align: center; color: gold; font-weight: 600;">
+          🎉 All badges earned! You're a legend! 🎉
+        </div>
+      `;
+    }
   }
 
   function closeProfileModal() {
@@ -2025,12 +2087,12 @@
     const d3 = fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3));
 
     const users = [
-      { id: 'demo', name: 'Demo User', email: 'demo@test.com', phone: '+506 8800-0000', neighborhood: 'San José', password: 'demo123', createdAt: new Date().toISOString() },
-      { id: 'u1', name: 'Demo One', email: 'demo1@test.com', phone: '+506 8811-1111', neighborhood: 'Escazú', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u2', name: 'Demo Two', email: 'demo2@test.com', phone: '+506 8822-2222', neighborhood: 'San Pedro', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u3', name: 'Demo Three', email: 'demo3@test.com', phone: '+506 8833-3333', neighborhood: 'Alajuela', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u4', name: 'Demo Four', email: 'demo4@test.com', phone: '+506 8844-4444', neighborhood: 'Curridabat', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u5', name: 'Demo Five', email: 'demo5@test.com', phone: '+506 8855-5555', neighborhood: 'Santa Ana', password: '123456', createdAt: new Date().toISOString() },
+      { id: 'demo', name: 'Demo User', email: 'demo@test.com', phone: '+506 8800-0000', neighborhood: 'San José', password: 'demo123', points: 150, badges: ['eco-starter'], ridesCompleted: 12, ridesOffered: 8, createdAt: new Date().toISOString() },
+      { id: 'u1', name: 'Demo One', email: 'demo1@test.com', phone: '+506 8811-1111', neighborhood: 'Escazú', password: '123456', points: 250, badges: ['eco-starter', 'green-commuter'], ridesCompleted: 25, ridesOffered: 15, createdAt: new Date().toISOString() },
+      { id: 'u2', name: 'Demo Two', email: 'demo2@test.com', phone: '+506 8822-2222', neighborhood: 'San Pedro', password: '123456', points: 80, badges: ['eco-starter'], ridesCompleted: 8, ridesOffered: 4, createdAt: new Date().toISOString() },
+      { id: 'u3', name: 'Demo Three', email: 'demo3@test.com', phone: '+506 8833-3333', neighborhood: 'Alajuela', password: '123456', points: 20, badges: [], ridesCompleted: 2, ridesOffered: 2, createdAt: new Date().toISOString() },
+      { id: 'u4', name: 'Demo Four', email: 'demo4@test.com', phone: '+506 8844-4444', neighborhood: 'Curridabat', password: '123456', points: 550, badges: ['eco-starter', 'green-commuter', 'carbon-champion'], ridesCompleted: 55, ridesOffered: 30, createdAt: new Date().toISOString() },
+      { id: 'u5', name: 'Demo Five', email: 'demo5@test.com', phone: '+506 8855-5555', neighborhood: 'Santa Ana', password: '123456', points: 1100, badges: ['eco-starter', 'green-commuter', 'carbon-champion', 'impact-leader'], ridesCompleted: 110, ridesOffered: 60, createdAt: new Date().toISOString() },
     ];
 
     const rides = [
@@ -2086,6 +2148,116 @@
   }
 
   // =========================================
+  //  POINTS & REWARDS SYSTEM
+  // =========================================
+
+  const BADGES = [
+    { id: 'eco-starter', name: '🥉 Eco Starter', desc: 'Complete 5 rides', requiredRides: 5, points: 50 },
+    { id: 'green-commuter', name: '🥈 Green Commuter', desc: 'Complete 20 rides', requiredRides: 20, points: 200 },
+    { id: 'carbon-champion', name: '🥇 Carbon Champion', desc: 'Complete 50 rides', requiredRides: 50, points: 500 },
+    { id: 'impact-leader', name: '🌟 Impact Leader', desc: 'Complete 100 rides', requiredRides: 100, points: 1000 }
+  ];
+
+  function awardPoints(userId, points, reason) {
+    const users = loadData(STORAGE_KEYS.users);
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex === -1) return;
+
+    const user = users[userIndex];
+    const oldPoints = user.points || 0;
+    user.points = oldPoints + points;
+
+    // Check for new badges
+    const earnedBadges = checkForNewBadges(user);
+
+    users[userIndex] = user;
+    saveData(STORAGE_KEYS.users, users);
+
+    // Update current user if it's them
+    if (currentUser && currentUser.id === userId) {
+      currentUser = user;
+      saveCurrentUser(user);
+      updatePointsDisplay();
+    }
+
+    // Show notification
+    toast(`+${points} points! ${reason} 🎉`, 'success');
+
+    // Show badge notifications
+    earnedBadges.forEach(badge => {
+      setTimeout(() => {
+        toast(`🏆 Achievement Unlocked: ${badge.name}!`, 'success');
+      }, 500);
+    });
+
+    return user;
+  }
+
+  function checkForNewBadges(user) {
+    if (!user.badges) user.badges = [];
+    if (!user.ridesCompleted) user.ridesCompleted = 0;
+
+    const newBadges = [];
+
+    BADGES.forEach(badge => {
+      const alreadyHas = user.badges.includes(badge.id);
+      const qualifies = user.ridesCompleted >= badge.requiredRides;
+
+      if (!alreadyHas && qualifies) {
+        user.badges.push(badge.id);
+        newBadges.push(badge);
+      }
+    });
+
+    return newBadges;
+  }
+
+  function updatePointsDisplay() {
+    if (!currentUser) return;
+
+    const points = currentUser.points || 0;
+    const pointsEl = $('#user-points');
+    if (pointsEl) {
+      pointsEl.textContent = points.toLocaleString();
+    }
+  }
+
+  function getNextBadge(user) {
+    const ridesCompleted = user.ridesCompleted || 0;
+
+    for (let badge of BADGES) {
+      if (!user.badges || !user.badges.includes(badge.id)) {
+        return {
+          ...badge,
+          progress: Math.min(100, (ridesCompleted / badge.requiredRides) * 100),
+          remaining: Math.max(0, badge.requiredRides - ridesCompleted)
+        };
+      }
+    }
+
+    return null; // All badges earned!
+  }
+
+  // Award points when offering a ride
+  const originalHandleOfferRide = handleOfferRide;
+  handleOfferRide = function(e) {
+    originalHandleOfferRide(e);
+
+    // Award points after ride is created
+    setTimeout(() => {
+      if (currentUser) {
+        const users = loadData(STORAGE_KEYS.users);
+        const userIndex = users.findIndex(u => u.id === currentUser.id);
+        if (userIndex !== -1) {
+          users[userIndex].ridesOffered = (users[userIndex].ridesOffered || 0) + 1;
+          saveData(STORAGE_KEYS.users, users);
+        }
+        awardPoints(currentUser.id, 5, 'Ride offered');
+      }
+    }, 100);
+  };
+
+  // =========================================
   //  KPI DASHBOARD & ANIMATED DEMO
   // =========================================
   function calculateKPIs() {
@@ -2099,8 +2271,8 @@
 
     completedRides.forEach(ride => {
       const passengers = ride.riders ? ride.riders.length : 0;
-      // Default distance for demo: Cartago to AFZ Heredia (~38 km)
-      const distance = ride.distance || 38;
+      // Default distance for demo: Plaza de la Cultura, San José → AFZ Heredia (~15 km)
+      const distance = ride.distance || 15;
 
       totalCarsReduced += passengers; // Each passenger = 1 car avoided
       totalCO2 += distance * passengers * 0.19; // kg CO2 per km (Costa Rica avg: 12km/L, 2.3kg CO2/L)
@@ -2183,32 +2355,34 @@
 
   const DEMO_DATA = {
     route: {
-      origin: 'Cartago, Costa Rica',
-      destination: 'AFZ Heredia Free Zone',
-      distance: 38 // km (real commute distance)
+      origin: 'Plaza de la Cultura, San José Centro',
+      originCoords: { lat: 9.9332, lng: -84.0750 },
+      destination: 'IBM AFZ Heredia Free Zone',
+      destinationCoords: { lat: 9.9981, lng: -84.1315 },
+      distance: 15 // km (San José Centro to AFZ Heredia)
     },
     perTrip: {
       carsReduced: 3,
-      co2: 21.66, // 38 km × 3 passengers × 0.19 kg CO2/km (Costa Rica avg)
-      cost: 31.92, // 38 km × 3 × $0.28/km (Costa Rica fuel + maintenance)
+      co2: 8.55, // 15 km × 3 passengers × 0.19 kg CO2/km (Costa Rica avg)
+      cost: 12.60, // 15 km × 3 × $0.28/km (Costa Rica fuel + maintenance)
       parking: 3
     },
     roundTrip: {
-      co2: 43.32, // 21.66 × 2
-      cost: 63.84 // $31.92 × 2
+      co2: 17.10, // 8.55 × 2
+      cost: 25.20 // $12.60 × 2
     },
     annual: {
       trips: 104, // 2 trips/week × 52 weeks
       carsReduced: 312, // 104 trips × 3 passengers
-      co2: 2250, // 43.32 kg × 52 weeks
-      cost: 6640, // $63.84 × 104 trips
-      trees: 107 // 2250 kg / 21 kg per tree per year
+      co2: 888, // 17.10 kg × 52 weeks
+      cost: 2621, // $25.20 × 104 trips
+      trees: 42 // 888 kg / 21 kg per tree per year
     },
     scale100: {
       trips: 7800, // 100 employees / 4 per car × 2 trips/week × 52 weeks × 3 cars
-      co2: 56250, // 2250 kg × 25 groups
-      cost: 166000, // $6640 × 25 groups
-      trees: 2679 // 56250 / 21
+      co2: 22200, // 888 kg × 25 groups
+      cost: 65500, // $2621 × 25 groups
+      trees: 1057 // 22200 / 21
     }
   };
 
@@ -2218,7 +2392,7 @@
       duration: 3000,
       scene: 'intro',
       mainText: 'CarPooling Impact Demo - Costa Rica',
-      subText: 'Real commute: Cartago → AFZ Heredia Free Zone (38 km)',
+      subText: 'Plaza de la Cultura → IBM AFZ Heredia (15 km)',
       action: 'showRoute'
     },
     {
@@ -2269,7 +2443,7 @@
       duration: 10000,
       scene: 'annual',
       mainText: '🎯 2026 Annual Impact',
-      subText: '2,250 kg CO2 saved = 107 trees planted! 🌳',
+      subText: '888 kg CO2 saved = 42 trees planted! 🌳',
       action: 'showBigNumbers',
       metrics: DEMO_DATA.annual
     },
@@ -2278,7 +2452,7 @@
       duration: 8000,
       scene: 'scale',
       mainText: 'Now Imagine 100 Employees...',
-      subText: '56.3 tons CO2 saved | ₡92M ($166,000) saved collectively',
+      subText: '22.2 tons CO2 saved | ₡36M ($65,500) saved collectively',
       action: 'showScale',
       metrics: DEMO_DATA.scale100
     },

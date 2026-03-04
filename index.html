@@ -93,6 +93,12 @@
         <span>CarPooling</span>
       </div>
       <div class="nav-user">
+        <div class="nav-points" title="Your Points">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          <span id="user-points">0</span>
+        </div>
         <button id="profile-btn" class="nav-user-btn" title="My Profile">
           <span id="nav-user-name"></span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -285,8 +291,8 @@
         <div class="impact-demo-hero glass-card" style="margin-bottom: var(--sp-6); padding: var(--sp-6); text-align: center; background: linear-gradient(135deg, rgba(15, 98, 254, 0.1) 0%, rgba(66, 190, 101, 0.1) 100%);">
           <h2 style="font-size: var(--fs-xl); margin-bottom: var(--sp-3);">🎬 See CarPooling in Action</h2>
           <p style="font-size: var(--fs-base); color: var(--text-secondary); margin-bottom: var(--sp-5);">
-            Watch an interactive visualization showing how 4 Costa Ricans save <strong>2,250 kg CO2</strong> per year<br>
-            <small style="opacity: 0.8;">Cartago → AFZ Heredia Free Zone | Real Costa Rica fuel prices</small>
+            Watch an interactive visualization showing how 4 people save <strong>888 kg CO2</strong> per year<br>
+            <small style="opacity: 0.8;">Plaza de la Cultura, San José → IBM AFZ Heredia (15 km) | Real Costa Rica fuel prices</small>
           </p>
           <button id="launch-demo-btn" class="btn btn-primary" style="font-size: var(--fs-md); padding: 0.875rem 2rem;">
             ▶ Launch Interactive Demo
@@ -520,6 +526,31 @@
         <h2>My Profile</h2>
         <span class="direction-tag">⚙️ Settings</span>
       </div>
+
+      <!-- Rewards Section -->
+      <div class="profile-rewards glass-card" style="margin-bottom: var(--sp-5); padding: var(--sp-4); background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%); border: 1px solid rgba(255, 215, 0, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-4);">
+          <h3 style="margin: 0; font-size: var(--fs-lg);">🏆 Rewards & Achievements</h3>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="gold">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            <span id="profile-points-display" style="font-size: var(--fs-xl); font-weight: 700; color: gold;">0</span>
+            <span style="color: var(--text-secondary); font-size: var(--fs-sm);">points</span>
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div id="profile-badges" class="badges-grid">
+          <!-- Badges will be dynamically inserted here -->
+        </div>
+
+        <!-- Next Badge Progress -->
+        <div id="next-badge-progress" style="margin-top: var(--sp-4);">
+          <!-- Progress to next badge will be shown here -->
+        </div>
+      </div>
+
       <form id="profile-form">
         <div class="form-group">
           <label for="profile-name">Full Name</label>
