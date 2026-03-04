@@ -253,8 +253,11 @@
       return;
     }
 
-    // Use Firebase Authentication if available
-    if (firebaseAuth) {
+    // DEMO MODE: Force localStorage for demo accounts (bypass Firebase)
+    const isDemoAccount = validDemoUsers.includes(email.toLowerCase());
+
+    // Use Firebase Authentication if available (but not for demo accounts)
+    if (firebaseAuth && !isDemoAccount) {
       try {
         // Firebase Auth handles password verification securely
         const userCredential = await firebaseAuth.signInWithEmailAndPassword(email, password);
@@ -2245,13 +2248,20 @@
     const d2 = fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2));
     const d3 = fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3));
 
-    const users = [
-      { id: 'u1', name: 'Demo One', email: 'demo1@ibm.com', phone: '+506 8811-1111', neighborhood: 'Escazú', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u2', name: 'Demo Two', email: 'demo2@ibm.com', phone: '+506 8822-2222', neighborhood: 'San Pedro', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u3', name: 'Demo Three', email: 'demo3@ibm.com', phone: '+506 8833-3333', neighborhood: 'Alajuela', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u4', name: 'Demo Four', email: 'demo4@ibm.com', phone: '+506 8844-4444', neighborhood: 'Curridabat', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u5', name: 'Demo Five', email: 'demo5@ibm.com', phone: '+506 8855-5555', neighborhood: 'Santa Ana', password: '123456', createdAt: new Date().toISOString() },
-    ];
+    // Generate 28 demo users
+    const users = [];
+    const neighborhoods = ['Cartago', 'Heredia', 'San José', 'Alajuela', 'Escazú', 'Santa Ana', 'Curridabat', 'San Pedro'];
+    for (let i = 1; i <= 28; i++) {
+      users.push({
+        id: `u${i}`,
+        name: `Demo User ${i}`,
+        email: `user${i}@test.com`,
+        phone: `+506 ${8800 + i}-${1111 + i}`,
+        neighborhood: neighborhoods[(i - 1) % neighborhoods.length],
+        password: 'Password123',
+        createdAt: new Date().toISOString()
+      });
+    }
 
     const rides = [
       {
