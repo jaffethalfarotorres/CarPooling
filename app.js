@@ -2239,8 +2239,15 @@
   //  DEMO SEED DATA
   // =========================================
   function seedDemoData() {
+    // DEMO MODE: Force create 28 demo users (clear old ones)
     const existingUsers = loadData(STORAGE_KEYS.users);
-    if (existingUsers.length > 0) return; // already seeded
+
+    // Check if we already have the 28 demo users
+    const hasDemoUsers = existingUsers.some(u => u.email && u.email.includes('user1@test.com'));
+    if (hasDemoUsers && existingUsers.length >= 28) return; // already seeded with new users
+
+    // Clear old demo users and create new ones
+    console.log('Creating 28 demo users...');
 
     const today = new Date();
     const fmt = (d) => d.toISOString().split('T')[0];
