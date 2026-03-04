@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IBM RideMatch — Carpool to AFZ Building F30</title>
+  <title>CarPooling App — Enterprise Carpooling Solution</title>
   <meta name="description"
-    content="IBM Costa Rica carpooling app. Find or offer rides to IBM AFZ Building F30, Heredia. Match with coworkers on similar commute routes." />
+    content="Enterprise carpooling app with live environmental impact tracking. Find or offer rides, reduce emissions, save costs. Real-time KPI dashboard and interactive demo." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
@@ -33,17 +33,17 @@
               fill="white" />
           </svg>
         </div>
-        <h1>RideMatch</h1>
-        <p class="brand-subtitle">IBM Costa Rica — AFZ Building F30, Heredia</p>
+        <h1>CarPooling</h1>
+        <p class="brand-subtitle">Enterprise Carpooling Solution</p>
       </div>
 
       <!-- Login Form -->
       <div id="login-form" class="auth-form glass-card">
         <h2>Welcome Back</h2>
-        <p class="form-desc">Sign in with your IBM email</p>
+        <p class="form-desc">Demo: Use @test.com email</p>
         <div class="form-group">
           <label for="login-email">Email</label>
-          <input type="email" id="login-email" placeholder="your.name@ibm.com" autocomplete="email" />
+          <input type="email" id="login-email" placeholder="yourname@test.com" autocomplete="email" />
         </div>
         <div class="form-group">
           <label for="login-password">Password</label>
@@ -56,14 +56,14 @@
       <!-- Register Form -->
       <div id="register-form" class="auth-form glass-card hidden">
         <h2>Create Account</h2>
-        <p class="form-desc">Join RideMatch with your IBM email</p>
+        <p class="form-desc">Demo: Use @test.com email / Test123</p>
         <div class="form-group">
           <label for="reg-name">Full Name</label>
           <input type="text" id="reg-name" placeholder="e.g. María García" autocomplete="name" />
         </div>
         <div class="form-group">
-          <label for="reg-email">IBM Email</label>
-          <input type="email" id="reg-email" placeholder="your.name@ibm.com" autocomplete="email" />
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" placeholder="maria.silva@test.com" autocomplete="email" />
         </div>
         <div class="form-group">
           <label for="reg-phone">Phone (optional)</label>
@@ -94,7 +94,7 @@
             d="M14 16h6v2h-6zM14 20h6v2h-6zM14 24h6v2h-6zM14 28h6v2h-6zM14 32h6v2h-6zM28 16h6v2h-6zM28 20h6v2h-6zM28 24h6v2h-6zM28 28h6v2h-6zM28 32h6v2h-6zM22 16h4v2h-4zM20 20h8v2h-8zM22 24h4v2h-4zM20 28h8v2h-8zM22 32h4v2h-4z"
             fill="white" />
         </svg>
-        <span>RideMatch</span>
+        <span>CarPooling</span>
       </div>
       <div class="nav-user">
         <button id="profile-btn" class="nav-user-btn" title="My Profile">
@@ -255,8 +255,8 @@
           <div class="filter-group">
             <select id="filter-direction">
               <option value="all">All directions</option>
-              <option value="to-ibm">🏢 Going to IBM</option>
-              <option value="from-ibm">🏠 Going home</option>
+              <option value="to-work">🏢 Going to work</option>
+              <option value="from-work">🏠 Going home</option>
             </select>
           </div>
           <div class="filter-group">
@@ -529,7 +529,7 @@
           <input type="text" id="profile-name" autocomplete="name" />
         </div>
         <div class="form-group">
-          <label for="profile-email">IBM Email</label>
+          <label for="profile-email">Email</label>
           <input type="email" id="profile-email" disabled style="opacity:0.5;cursor:not-allowed" />
         </div>
         <div class="form-group">

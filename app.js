@@ -1,5 +1,5 @@
 /* =============================================
-   IBM RideMatch — Application Logic
+   CarPooling App — Application Logic
    ============================================= */
 
 (function () {
@@ -83,8 +83,8 @@
     messages: 'ridematch_messages',
   };
 
-  // IBM AFZ Building F30, Heredia, Costa Rica
-  const IBM_LOCATION = window.CONFIG ? window.CONFIG.ibmLocation : { lat: 9.9981, lng: -84.1315 };
+  // Default work location (configurable)
+  const WORK_LOCATION = window.CONFIG ? window.CONFIG.workLocation : { lat: 9.9981, lng: -84.1315 };
 
   const DARK_MAP_STYLES = [
     { elementType: 'geometry', stylers: [{ color: '#1d1d2e' }] },
@@ -499,7 +499,7 @@
   // =========================================
   //  OFFER A RIDE
   // =========================================
-  const IBM_ADDRESS = 'IBM AFZ Building F30, Heredia';
+  const WORK_ADDRESS = 'Workplace Address';
 
   function prepareOfferForm() {
     const today = new Date().toISOString().split('T')[0];
@@ -509,15 +509,15 @@
     const fromInput = $('#offer-from');
     const toInput = $('#offer-to');
 
-    // Pre-fill From with user's neighborhood, To with IBM
+    // Pre-fill From with user's neighborhood, To with work location
     if (fromInput && !fromInput.value && currentUser) {
       fromInput.value = currentUser.neighborhood || '';
     }
     if (toInput && !toInput.value) {
-      toInput.value = IBM_ADDRESS;
-      toInput.dataset.lat = String(IBM_LOCATION.lat);
-      toInput.dataset.lng = String(IBM_LOCATION.lng);
-      toInput.dataset.address = IBM_ADDRESS;
+      toInput.value = WORK_ADDRESS;
+      toInput.dataset.lat = String(WORK_LOCATION.lat);
+      toInput.dataset.lng = String(WORK_LOCATION.lng);
+      toInput.dataset.address = WORK_ADDRESS;
       toInput.dataset.isIbm = 'true';
     }
 
@@ -565,7 +565,7 @@
       return;
     }
 
-    // Infer direction: whichever field has IBM is the IBM endpoint
+    // Infer direction: whichever field has work address is the work endpoint
     const toIsIbm = toInput.dataset.isIbm === 'true' || toVal.toLowerCase().includes('ibm');
     const fromIsIbm = fromInput.dataset.isIbm === 'true' || fromVal.toLowerCase().includes('ibm');
 
