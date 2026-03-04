@@ -243,7 +243,7 @@
     }
 
     if (!validDemoUsers.includes(email.toLowerCase())) {
-      toast('⚠️ DEMO MODE: Please select one of the 28 available demo accounts (User1@test.com - User28@test.com)', 'error');
+      toast('⚠️ DEMO MODE: Please select one of the 28 available demo accounts (user1@test.com - user28@test.com)', 'error');
       return;
     }
 
@@ -329,7 +329,7 @@
     }
 
     if (!validDemoUsers.includes(email.toLowerCase())) {
-      toast('⚠️ DEMO MODE: Please select one of the 28 available demo accounts (User1@test.com - User28@test.com)', 'error');
+      toast('⚠️ DEMO MODE: Please select one of the 28 available demo accounts (user1@test.com - user28@test.com)', 'error');
       return;
     }
 
