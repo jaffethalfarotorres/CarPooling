@@ -2498,6 +2498,7 @@
   let demoCarMarker = null;
   let demoRoutePath = null;
   let demoRouteCoordinates = [];
+  let lastCarHeading = 0;
 
   // Init demo map with real Google Maps
   function initDemoMap() {
@@ -2606,21 +2607,44 @@
           map: demoMap
         });
 
-        // Create car marker (initially hidden at origin)
+        // Create car marker with better icon (initially hidden at origin)
         demoCarMarker = new google.maps.Marker({
           position: DEMO_DATA.route.originCoords,
           map: demoMap,
           icon: {
             url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="18" fill="#0f62fe" stroke="#fff" stroke-width="2"/>
-                <text x="20" y="28" font-size="20" text-anchor="middle" fill="#fff">🚗</text>
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+                <defs>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                    <feOffset dx="0" dy="2" result="offsetblur"/>
+                    <feComponentTransfer>
+                      <feFuncA type="linear" slope="0.3"/>
+                    </feComponentTransfer>
+                    <feMerge>
+                      <feMergeNode/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <g filter="url(#shadow)">
+                  <!-- Outer circle (blue glow) -->
+                  <circle cx="24" cy="24" r="20" fill="#0f62fe" opacity="0.3"/>
+                  <!-- Main circle -->
+                  <circle cx="24" cy="24" r="16" fill="#0f62fe" stroke="#fff" stroke-width="2.5"/>
+                  <!-- Car shape (simplified, points up/north by default) -->
+                  <path d="M24 12 L28 20 L28 28 L26 30 L22 30 L20 28 L20 20 Z" fill="#fff" opacity="0.9"/>
+                  <!-- Direction indicator (arrow) -->
+                  <path d="M24 10 L27 16 L21 16 Z" fill="#fff"/>
+                </g>
               </svg>
             `),
-            scaledSize: new google.maps.Size(40, 40),
-            anchor: new google.maps.Point(20, 20)
+            scaledSize: new google.maps.Size(48, 48),
+            anchor: new google.maps.Point(24, 24),
+            rotation: 0
           },
-          zIndex: 1000
+          zIndex: 1000,
+          optimized: false
         });
 
         demoCarMarker.setVisible(false);
@@ -2650,6 +2674,9 @@
       demoCarMarker.setPosition(DEMO_DATA.route.originCoords);
       demoCarMarker.setVisible(false);
     }
+
+    // Reset car heading
+    lastCarHeading = 0;
 
     // Reset map view
     if (demoMap) {
@@ -2759,27 +2786,52 @@
         if (position) {
           demoCarMarker.setPosition(position);
 
-          // Calculate heading for car rotation (if next point exists)
-          if (routeIndex < demoRouteCoordinates.length - 1) {
-            const nextPos = demoRouteCoordinates[routeIndex + 1];
+          // Calculate heading for car rotation (look ahead several points for smoother rotation)
+          const lookAheadPoints = 5;
+          const nextIndex = Math.min(routeIndex + lookAheadPoints, demoRouteCoordinates.length - 1);
+
+          if (nextIndex > routeIndex) {
+            const nextPos = demoRouteCoordinates[nextIndex];
             const heading = google.maps.geometry.spherical.computeHeading(position, nextPos);
 
-            // Update car icon with rotation
-            demoCarMarker.setIcon({
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-                  <g transform="rotate(${heading} 20 20)">
-                    <circle cx="20" cy="20" r="18" fill="#0f62fe" stroke="#fff" stroke-width="2"/>
-                    <text x="20" y="28" font-size="20" text-anchor="middle" fill="#fff">🚗</text>
-                  </g>
-                </svg>
-              `),
-              scaledSize: new google.maps.Size(40, 40),
-              anchor: new google.maps.Point(20, 20)
-            });
+            // Only update rotation if change is significant (>15 degrees) to reduce spinning
+            const headingDiff = Math.abs(heading - lastCarHeading);
+            if (headingDiff > 15 || lastCarHeading === 0) {
+              lastCarHeading = heading;
+
+              // Update car icon with smooth rotation
+              const currentIcon = demoCarMarker.getIcon();
+              demoCarMarker.setIcon({
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+                    <defs>
+                      <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+                        <feOffset dx="0" dy="2" result="offsetblur"/>
+                        <feComponentTransfer>
+                          <feFuncA type="linear" slope="0.3"/>
+                        </feComponentTransfer>
+                        <feMerge>
+                          <feMergeNode/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    <g transform="rotate(${heading} 24 24)" filter="url(#shadow)">
+                      <circle cx="24" cy="24" r="20" fill="#0f62fe" opacity="0.3"/>
+                      <circle cx="24" cy="24" r="16" fill="#0f62fe" stroke="#fff" stroke-width="2.5"/>
+                      <path d="M24 12 L28 20 L28 28 L26 30 L22 30 L20 28 L20 20 Z" fill="#fff" opacity="0.9"/>
+                      <path d="M24 10 L27 16 L21 16 Z" fill="#fff"/>
+                    </g>
+                  </svg>
+                `),
+                scaledSize: new google.maps.Size(48, 48),
+                anchor: new google.maps.Point(24, 24)
+              });
+            }
           }
 
-          // Pan map to follow car
+          // Pan map to follow car (smooth)
           demoMap.panTo(position);
         }
       }
