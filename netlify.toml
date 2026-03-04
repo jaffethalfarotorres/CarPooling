@@ -1,0 +1,22 @@
+# Netlify Configuration for CarPooling App
+# Simple static site - no build process needed
+
+[build]
+  # No build command needed (static HTML/CSS/JS)
+  command = ""
+  # Publish from root directory
+  publish = "."
+
+# Redirect rules for SPA behavior
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"
