@@ -2281,14 +2281,15 @@
     });
 
     const totalTrees = Math.round(totalCO2 / 21); // 21 kg CO2 per tree per year
-    const parkingSpaces = Math.min(totalCarsReduced, 100); // Estimate parking impact
+    // Parking: Each carpool = multiple cars avoided = same number of parking spaces freed
+    const parkingSpaces = totalCarsReduced; // 1 car avoided = 1 parking space freed
 
     return {
       totalCarsReduced,
       totalCO2: Math.round(totalCO2 * 10) / 10, // Round to 1 decimal
       totalCost: Math.round(totalCost),
       totalTrees,
-      parkingSpaces: Math.min(parkingSpaces, totalCarsReduced > 0 ? Math.ceil(totalCarsReduced / 50) + 2 : 0),
+      parkingSpaces, // Simple: cars reduced = parking freed
       totalRides: completedRides.length
     };
   }
@@ -2841,7 +2842,7 @@
         scene.metrics.carsReduced,
         Math.round(scene.metrics.co2),
         Math.round(scene.metrics.cost),
-        scene.metrics.carsReduced > 0 ? Math.ceil(scene.metrics.carsReduced / 50) : 0
+        scene.metrics.carsReduced // Parking = cars avoided
       );
     } else if (scene.action === 'showScale' && scene.metrics) {
       updateDemoMetrics(
@@ -2849,7 +2850,7 @@
         scene.metrics.trips,
         Math.round(scene.metrics.co2),
         Math.round(scene.metrics.cost),
-        75
+        Math.round(scene.metrics.trips * 0.75) // Scale: ~75% of trips = parking freed
       );
     }
   }
