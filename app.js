@@ -2133,24 +2133,30 @@
   //  EVENT BINDINGS
   // =========================================
   function bindEvents() {
+    // Helper function to safely bind events (check if element exists)
+    const safeBind = (selector, event, handler) => {
+      const el = $(selector);
+      if (el) el.addEventListener(event, handler);
+    };
+
     // Auth
-    $('#login-btn').addEventListener('click', handleLogin);
-    $('#register-btn').addEventListener('click', handleRegister);
-    $('#show-register').addEventListener('click', e => {
+    safeBind('#login-btn', 'click', handleLogin);
+    safeBind('#register-btn', 'click', handleRegister);
+    safeBind('#show-register', 'click', e => {
       e.preventDefault();
       loginForm.classList.add('hidden');
       registerForm.classList.remove('hidden');
     });
-    $('#show-login').addEventListener('click', e => {
+    safeBind('#show-login', 'click', e => {
       e.preventDefault();
       registerForm.classList.add('hidden');
       loginForm.classList.remove('hidden');
     });
-    $('#logout-btn').addEventListener('click', handleLogout);
+    safeBind('#logout-btn', 'click', handleLogout);
 
     // Enter key for login/register
-    $('#login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
-    $('#reg-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleRegister(); });
+    safeBind('#login-password', 'keydown', e => { if (e.key === 'Enter') handleLogin(); });
+    safeBind('#reg-password', 'keydown', e => { if (e.key === 'Enter') handleRegister(); });
 
     // Navigation
     $$('.nav-item').forEach(btn => {
@@ -2158,24 +2164,27 @@
     });
 
     // Quick actions
-    $('#quick-offer').addEventListener('click', () => navigateTo('offer'));
-    $('#quick-find').addEventListener('click', () => navigateTo('find'));
-    $('#quick-myrides').addEventListener('click', () => navigateTo('myrides'));
+    safeBind('#quick-offer', 'click', () => navigateTo('offer'));
+    safeBind('#quick-find', 'click', () => navigateTo('find'));
+    safeBind('#quick-myrides', 'click', () => navigateTo('myrides'));
 
     // Offer form
-    $('#offer-form').addEventListener('submit', handleOfferRide);
-    $('#offer-swap').addEventListener('click', swapOfferLocations);
+    safeBind('#offer-form', 'submit', handleOfferRide);
+    safeBind('#offer-swap', 'click', swapOfferLocations);
 
     // Filters
-    $('#filter-direction').addEventListener('change', renderFindRides);
-    $('#filter-search').addEventListener('input', renderFindRides);
-    $('#filter-date').addEventListener('change', renderFindRides);
+    safeBind('#filter-direction', 'change', renderFindRides);
+    safeBind('#filter-search', 'input', renderFindRides);
+    safeBind('#filter-date', 'change', renderFindRides);
 
     // Modal
-    $('#modal-close').addEventListener('click', closeModal);
-    $('#ride-modal').addEventListener('click', e => {
-      if (e.target === $('#ride-modal')) closeModal();
-    });
+    safeBind('#modal-close', 'click', closeModal);
+    const rideModal = $('#ride-modal');
+    if (rideModal) {
+      rideModal.addEventListener('click', e => {
+        if (e.target === rideModal) closeModal();
+      });
+    }
 
     // Tabs
     $$('.tab').forEach(tab => {
@@ -2183,8 +2192,9 @@
         const tabName = tab.dataset.tab;
         $$('.tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        $$('.tab-content').forEach(tc => tc.classList.remove('active'));
-        $(`#tab-${tabName}`).classList.add('active');
+        $$('.tab-content').forEach(tc => tc.classList.remove('hidden'));
+        const targetTab = $(`#tab-${tabName}`);
+        if (targetTab) targetTab.classList.add('active');
       });
     });
 
@@ -2194,31 +2204,38 @@
     });
 
     // Chat
-    $('#chat-close').addEventListener('click', closeChat);
-    $('#chat-send').addEventListener('click', sendChatMessage);
-    $('#chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
+    safeBind('#chat-close', 'click', closeChat);
+    safeBind('#chat-send', 'click', sendChatMessage);
+    safeBind('#chat-input', 'keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
 
     // Profile
-    $('#profile-btn').addEventListener('click', openProfileModal);
-    $('#profile-modal-close').addEventListener('click', closeProfileModal);
-    $('#profile-modal').addEventListener('click', e => {
-      if (e.target === $('#profile-modal')) closeProfileModal();
-    });
-    $('#profile-form').addEventListener('submit', handleProfileSave);
+    safeBind('#profile-btn', 'click', openProfileModal);
+    safeBind('#profile-modal-close', 'click', closeProfileModal);
+    const profileModal = $('#profile-modal');
+    if (profileModal) {
+      profileModal.addEventListener('click', e => {
+        if (e.target === profileModal) closeProfileModal();
+      });
+    }
+    safeBind('#profile-form', 'submit', handleProfileSave);
 
     // Tracking
-    $('#tracking-close').addEventListener('click', closeTracking);
-    $('#tracking-start').addEventListener('click', startTracking);
-    $('#tracking-stop').addEventListener('click', () => { stopTracking(); toast('Tracking stopped', 'info'); });
-    $('#mode-demo').addEventListener('click', () => {
+    safeBind('#tracking-close', 'click', closeTracking);
+    safeBind('#tracking-start', 'click', startTracking);
+    safeBind('#tracking-stop', 'click', () => { stopTracking(); toast('Tracking stopped', 'info'); });
+    safeBind('#mode-demo', 'click', () => {
+      const modeDemo = $('#mode-demo');
+      const modeLive = $('#mode-live');
       trackingState.mode = 'demo';
-      $('#mode-demo').classList.add('active');
-      $('#mode-live').classList.remove('active');
+      if (modeDemo) modeDemo.classList.add('active');
+      if (modeLive) modeLive.classList.remove('active');
     });
-    $('#mode-live').addEventListener('click', () => {
+    safeBind('#mode-live', 'click', () => {
+      const modeDemo = $('#mode-demo');
+      const modeLive = $('#mode-live');
       trackingState.mode = 'live';
-      $('#mode-live').classList.add('active');
-      $('#mode-demo').classList.remove('active');
+      if (modeLive) modeLive.classList.add('active');
+      if (modeDemo) modeDemo.classList.remove('active');
     });
   }
 
