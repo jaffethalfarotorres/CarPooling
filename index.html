@@ -15,6 +15,12 @@
 </head>
 
 <body>
+  <!-- ===== DEMO WARNING BANNER ===== -->
+  <div id="demo-banner" class="demo-banner">
+    <span class="demo-banner-text">⚠️ <strong>DEMO MODE:</strong> Use yourname@test.com / Password: Test123</span>
+    <button id="close-demo-banner" class="demo-banner-close" onclick="closeDemoBanner()" aria-label="Close banner">✕</button>
+  </div>
+
   <!-- ===== AUTH SCREEN ===== -->
   <div id="auth-screen" class="screen active">
     <div class="auth-container">
@@ -272,6 +278,75 @@
         </div>
       </section>
 
+      <!-- === IMPACT / KPI DASHBOARD === -->
+      <section id="page-impact" class="page">
+        <div class="page-header">
+          <h1>🌍 Environmental Impact</h1>
+          <p class="page-subtitle">See the difference we're making together</p>
+        </div>
+
+        <!-- Demo CTA Hero -->
+        <div class="impact-demo-hero glass-card" style="margin-bottom: var(--sp-6); padding: var(--sp-6); text-align: center; background: linear-gradient(135deg, rgba(15, 98, 254, 0.1) 0%, rgba(66, 190, 101, 0.1) 100%);">
+          <h2 style="font-size: var(--fs-xl); margin-bottom: var(--sp-3);">🎬 See CarPooling in Action</h2>
+          <p style="font-size: var(--fs-base); color: var(--text-secondary); margin-bottom: var(--sp-5);">
+            Watch an interactive visualization showing how 4 people save <strong>1,420 kg CO2</strong> in one year
+          </p>
+          <button id="launch-demo-btn" class="btn btn-primary" style="font-size: var(--fs-md); padding: 0.875rem 2rem;">
+            ▶ Launch Interactive Demo
+          </button>
+        </div>
+
+        <!-- KPI Cards Grid -->
+        <div class="impact-grid">
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">🚗</div>
+            <div class="impact-value" id="kpi-cars">0</div>
+            <div class="impact-label">Cars Reduced</div>
+            <div class="impact-sublabel">Trips avoided</div>
+          </div>
+
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">🌱</div>
+            <div class="impact-value" id="kpi-co2">0 kg</div>
+            <div class="impact-label">CO2 Saved</div>
+            <div class="impact-sublabel">≈ <span id="kpi-trees">0</span> trees planted</div>
+          </div>
+
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">💰</div>
+            <div class="impact-value" id="kpi-cost">$0</div>
+            <div class="impact-label">Cost Savings</div>
+            <div class="impact-sublabel">Collective fuel savings</div>
+          </div>
+
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">🅿️</div>
+            <div class="impact-value" id="kpi-parking">0</div>
+            <div class="impact-label">Parking Spaces</div>
+            <div class="impact-sublabel">Freed up daily</div>
+          </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="glass-card" style="margin-top: var(--sp-6); padding: var(--sp-6);">
+          <h3 style="font-size: var(--fs-lg); margin-bottom: var(--sp-4);">📊 How We Calculate Impact</h3>
+          <div style="color: var(--text-secondary); line-height: 1.6;">
+            <p style="margin-bottom: var(--sp-3);">
+              <strong>CO2 Emissions:</strong> Standard calculation of 0.12 kg CO2 per km per car avoided
+            </p>
+            <p style="margin-bottom: var(--sp-3);">
+              <strong>Cost Savings:</strong> Based on $0.75/km (fuel + vehicle wear)
+            </p>
+            <p style="margin-bottom: var(--sp-3);">
+              <strong>Trees Equivalent:</strong> One tree absorbs approximately 21 kg CO2 per year
+            </p>
+            <p style="margin: 0;">
+              <strong>Parking Impact:</strong> Each carpool frees up parking spaces for other employees
+            </p>
+          </div>
+        </div>
+      </section>
+
       <!-- === MY RIDES === -->
       <section id="page-myrides" class="page">
         <div class="page-header">
@@ -351,6 +426,12 @@
           <line x1="8" y1="12" x2="16" y2="12" />
         </svg>
         <span>Offer</span>
+      </button>
+      <button class="nav-item" data-page="impact" id="nav-impact">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+        </svg>
+        <span>Impact</span>
       </button>
       <button class="nav-item" data-page="myrides" id="nav-myrides">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -498,11 +579,101 @@
     </div>
   </div>
 
+  <!-- ===== DEMO WARNING MODAL ===== -->
+  <div id="demo-warning-modal" class="modal-overlay hidden">
+    <div class="modal glass-card" style="max-width: 500px;">
+      <div class="modal-ride-header">
+        <h2 style="margin: 0;">⚠️ Demo Mode Active</h2>
+      </div>
+      <div style="padding: 1.5rem;">
+        <p style="margin-bottom: 1rem; font-size: 1.05rem;">
+          Welcome to <strong>CarPooling App</strong> — an enterprise carpooling solution demo.
+        </p>
+        <div style="background: #fffbea; border-left: 4px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <p style="margin: 0; font-weight: 600; color: #92400e;">
+            🔒 This is a SAFE DEMO environment
+          </p>
+          <p style="margin: 0.5rem 0 0 0; color: #92400e; font-size: 0.95rem;">
+            Do NOT enter real credentials. This demo uses test accounts only.
+          </p>
+        </div>
+        <div style="background: #f3f4f6; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <p style="margin: 0 0 0.5rem 0; font-weight: 600;">Demo Credentials:</p>
+          <p style="margin: 0.25rem 0; font-family: monospace;">Email: <strong>yourname@test.com</strong></p>
+          <p style="margin: 0.25rem 0; font-family: monospace;">Password: <strong>Test123</strong></p>
+          <p style="margin: 0.75rem 0 0 0; font-size: 0.9rem; color: #6b7280;">
+            (Use any name before @test.com, e.g., maria.silva@test.com)
+          </p>
+        </div>
+        <p style="margin-bottom: 1.5rem; font-size: 0.95rem; color: #6b7280;">
+          Click the <strong>🎬 Demo</strong> button after logging in to see an interactive visualization
+          of how carpooling saves CO2 and reduces costs!
+        </p>
+        <button onclick="closeDemoWarningModal()" class="btn btn-primary btn-full">
+          Got it, let's explore!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ANIMATED DEMO MODAL ===== -->
+  <div id="demo-animation-modal" class="modal-overlay hidden" style="background: rgba(0, 0, 0, 0.95);">
+    <div class="demo-animation-container">
+      <!-- Map Container -->
+      <div id="demo-map" class="demo-map-canvas"></div>
+
+      <!-- Narrative Text Overlay -->
+      <div id="demo-narrative" class="demo-narrative">
+        <h2 id="demo-text-main" class="demo-text-main">CarPooling Impact Demo</h2>
+        <p id="demo-text-sub" class="demo-text-sub">Watch how carpooling transforms commuting</p>
+      </div>
+
+      <!-- Metrics Panel -->
+      <div id="demo-metrics" class="demo-metrics-panel">
+        <div class="demo-metric">
+          <span class="demo-metric-label">Distance</span>
+          <span class="demo-metric-value" id="demo-distance">0 km</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">🚗 Cars Reduced</span>
+          <span class="demo-metric-value" id="demo-cars">0</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">🌱 CO2 Saved</span>
+          <span class="demo-metric-value" id="demo-co2">0 kg</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">💰 Cost Saved</span>
+          <span class="demo-metric-value" id="demo-cost">$0</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">🅿️ Parking Freed</span>
+          <span class="demo-metric-value" id="demo-parking">0</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="demo-progress-bar">
+        <div id="demo-progress-fill" class="demo-progress-fill"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="demo-controls">
+        <button id="demo-play-pause" class="demo-btn demo-btn-primary">
+          <span id="demo-play-icon">▶</span> <span id="demo-play-text">Start Demo</span>
+        </button>
+        <button id="demo-restart" class="demo-btn">↻ Restart</button>
+        <button id="demo-close" class="demo-btn">✕ Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== TOAST ===== -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- Firebase SDK (used when FIREBASE_CONFIG is set in app.js) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <!-- Configuration (contains API keys - gitignored) -->

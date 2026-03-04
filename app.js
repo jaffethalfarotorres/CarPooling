@@ -20,12 +20,14 @@
 
   const FIREBASE_SYNC_KEYS = ['users', 'rides', 'requests', 'notifications', 'ratings', 'messages'];
   let firebaseDB = null;
+  let firebaseAuth = null;
 
   async function initFirebaseSync() {
     if (!FIREBASE_CONFIG || typeof firebase === 'undefined') return;
     try {
       if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
       firebaseDB = firebase.database();
+      firebaseAuth = firebase.auth();
 
       // Pull all data from Firebase into localStorage before app starts
       for (const key of FIREBASE_SYNC_KEYS) {
@@ -157,14 +159,47 @@
   //  INITIALIZATION
   // =========================================
   function init() {
-    if (currentUser) {
-      showApp();
+    // Set up Firebase Auth session persistence
+    if (firebaseAuth) {
+      firebaseAuth.onAuthStateChanged(async (user) => {
+        if (user) {
+          // User is signed in - fetch profile from database
+          if (firebaseDB) {
+            const snapshot = await firebaseDB.ref(`ridematch/users/${user.uid}`).once('value');
+            if (snapshot.exists()) {
+              currentUser = snapshot.val();
+              saveCurrentUser(currentUser);
+              showApp();
+              updateNotificationBadge();
+            } else {
+              // User authenticated but no profile - sign out
+              await firebaseAuth.signOut();
+              showAuth();
+            }
+          }
+        } else {
+          // User is signed out
+          if (!currentUser) {
+            showAuth();
+          }
+        }
+      });
     } else {
-      showAuth();
+      // Fallback: check localStorage
+      if (currentUser) {
+        showApp();
+      } else {
+        showAuth();
+      }
     }
+
     bindEvents();
     setDefaultDate();
     initMapsModule();
+
+    // Demo mode setup
+    checkDemoBannerState();
+    showDemoWarningOnFirstVisit();
   }
 
   function setDefaultDate() {
@@ -192,7 +227,7 @@
     updateNotificationBadge();
   }
 
-  function handleLogin() {
+  async function handleLogin() {
     const email = $('#login-email').value.trim().toLowerCase();
     const password = $('#login-password').value;
 
@@ -201,21 +236,72 @@
       return;
     }
 
-    const users = loadData(STORAGE_KEYS.users);
-    const user = users.find(u => u.email === email && u.password === password);
-
-    if (!user) {
-      toast('Invalid email or password', 'error');
+    // DEMO MODE: Only allow @test.com emails
+    if (!email.endsWith('@test.com')) {
+      toast('⚠️ DEMO MODE: Please use @test.com email (e.g., yourname@test.com)', 'error');
       return;
     }
 
-    currentUser = user;
-    saveCurrentUser(user);
-    showApp();
-    toast(`Welcome back, ${user.name.split(' ')[0]}!`, 'success');
+    // DEMO MODE: Only allow Test123 password
+    if (password !== 'Test123') {
+      toast('⚠️ DEMO MODE: Password must be exactly "Test123"', 'error');
+      return;
+    }
+
+    // Use Firebase Authentication if available
+    if (firebaseAuth) {
+      try {
+        // Firebase Auth handles password verification securely
+        const userCredential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+
+        // Fetch user profile from Realtime Database
+        if (firebaseDB) {
+          const snapshot = await firebaseDB.ref(`ridematch/users/${uid}`).once('value');
+          const userProfile = snapshot.val();
+
+          if (!userProfile) {
+            toast('User profile not found. Please contact support.', 'error');
+            await firebaseAuth.signOut();
+            return;
+          }
+
+          currentUser = userProfile;
+          saveCurrentUser(userProfile);
+          showApp();
+          toast(`Welcome back, ${userProfile.name.split(' ')[0]}!`, 'success');
+        }
+
+      } catch (err) {
+        console.error('Login error:', err);
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+          toast('Invalid email or password', 'error');
+        } else if (err.code === 'auth/invalid-email') {
+          toast('Invalid email address', 'error');
+        } else if (err.code === 'auth/too-many-requests') {
+          toast('Too many failed attempts. Please try again later.', 'error');
+        } else {
+          toast(`Login failed: ${err.message}`, 'error');
+        }
+      }
+    } else {
+      // Fallback to localStorage (if Firebase not configured)
+      const users = loadData(STORAGE_KEYS.users);
+      const user = users.find(u => u.email === email && u.password === password);
+
+      if (!user) {
+        toast('Invalid email or password', 'error');
+        return;
+      }
+
+      currentUser = user;
+      saveCurrentUser(user);
+      showApp();
+      toast(`Welcome back, ${user.name.split(' ')[0]}!`, 'success');
+    }
   }
 
-  function handleRegister() {
+  async function handleRegister() {
     const name = $('#reg-name').value.trim();
     const email = $('#reg-email').value.trim().toLowerCase();
     const phone = $('#reg-phone').value.trim();
@@ -228,49 +314,145 @@
       return;
     }
 
-    if (!email.endsWith('@ibm.com')) {
-      toast('Please use your IBM email (@ibm.com)', 'error');
+    // DEMO MODE: Only allow @test.com emails
+    if (!email.endsWith('@test.com')) {
+      toast('⚠️ DEMO MODE: Please use @test.com email (e.g., yourname@test.com)', 'error');
       return;
     }
 
-    if (password.length < 6) {
-      toast('Password must be at least 6 characters', 'error');
+    // DEMO MODE: Only allow Test123 password
+    if (password !== 'Test123') {
+      toast('⚠️ DEMO MODE: Password must be exactly "Test123"', 'error');
       return;
     }
 
-    const users = loadData(STORAGE_KEYS.users);
-    if (users.find(u => u.email === email)) {
-      toast('An account with this email already exists', 'error');
-      return;
+    // Use Firebase Authentication if available
+    if (firebaseAuth) {
+      try {
+        // Create Firebase Auth user (password stored securely by Firebase)
+        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+
+        // Store user profile in Realtime Database (NO password field)
+        const userProfile = {
+          id: uid,
+          name,
+          email,
+          phone,
+          neighborhood,
+          createdAt: new Date().toISOString(),
+        };
+
+        // Save to Firebase Database
+        if (firebaseDB) {
+          await firebaseDB.ref(`ridematch/users/${uid}`).set(userProfile);
+        }
+
+        // Save to local state
+        currentUser = userProfile;
+        saveCurrentUser(userProfile);
+        showApp();
+        toast(`Welcome to RideMatch, ${name.split(' ')[0]}! 🚗`, 'success');
+
+      } catch (err) {
+        console.error('Registration error:', err);
+        if (err.code === 'auth/email-already-in-use') {
+          toast('An account with this email already exists', 'error');
+        } else if (err.code === 'auth/weak-password') {
+          toast('Password is too weak. Please use a stronger password.', 'error');
+        } else if (err.code === 'auth/invalid-email') {
+          toast('Invalid email address', 'error');
+        } else {
+          toast(`Registration failed: ${err.message}`, 'error');
+        }
+      }
+    } else {
+      // Fallback to localStorage (if Firebase not configured)
+      const users = loadData(STORAGE_KEYS.users);
+      if (users.find(u => u.email === email)) {
+        toast('An account with this email already exists', 'error');
+        return;
+      }
+
+      const newUser = {
+        id: uid(),
+        name,
+        email,
+        phone,
+        neighborhood,
+        password, // ⚠️ Still plain-text in fallback mode
+        createdAt: new Date().toISOString(),
+      };
+
+      users.push(newUser);
+      saveData(STORAGE_KEYS.users, users);
+      currentUser = newUser;
+      saveCurrentUser(newUser);
+      showApp();
+      toast(`Welcome to RideMatch, ${name.split(' ')[0]}! 🚗`, 'success');
     }
-
-    const newUser = {
-      id: uid(),
-      name,
-      email,
-      phone,
-      neighborhood,
-      password,
-      createdAt: new Date().toISOString(),
-    };
-
-    users.push(newUser);
-    saveData(STORAGE_KEYS.users, users);
-
-    currentUser = newUser;
-    saveCurrentUser(newUser);
-    showApp();
-    toast(`Welcome to RideMatch, ${name.split(' ')[0]}! 🚗`, 'success');
   }
 
-  function handleLogout() {
-    clearCurrentUser();
-    currentUser = null;
-    showAuth();
-    // Clear form fields
-    $('#login-email').value = '';
-    $('#login-password').value = '';
-    toast('Signed out successfully', 'info');
+  async function handleLogout() {
+    try {
+      // Sign out from Firebase Auth if available
+      if (firebaseAuth) {
+        await firebaseAuth.signOut();
+      }
+
+      clearCurrentUser();
+      currentUser = null;
+      showAuth();
+
+      // Clear form fields
+      $('#login-email').value = '';
+      $('#login-password').value = '';
+
+      toast('Signed out successfully', 'info');
+    } catch (err) {
+      console.error('Logout error:', err);
+      toast('Error signing out', 'error');
+    }
+  }
+
+  // =========================================
+  //  DEMO MODE WARNINGS
+  // =========================================
+  function showDemoWarningOnFirstVisit() {
+    const hasSeenWarning = localStorage.getItem('demo-warning-seen');
+    if (!hasSeenWarning) {
+      const modal = $('#demo-warning-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
+    }
+  }
+
+  window.closeDemoWarningModal = function() {
+    const modal = $('#demo-warning-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      localStorage.setItem('demo-warning-seen', 'true');
+    }
+  };
+
+  window.closeDemoBanner = function() {
+    const banner = $('#demo-banner');
+    if (banner) {
+      banner.style.display = 'none';
+      localStorage.setItem('demo-banner-closed', 'true');
+    }
+  };
+
+  // Check if banner was previously closed
+  function checkDemoBannerState() {
+    const bannerClosed = localStorage.getItem('demo-banner-closed');
+    if (bannerClosed === 'true') {
+      const banner = $('#demo-banner');
+      if (banner) {
+        banner.style.display = 'none';
+      }
+    }
   }
 
   // =========================================
@@ -1578,7 +1760,7 @@
     $('#profile-modal').classList.add('hidden');
   }
 
-  function handleProfileSave(e) {
+  async function handleProfileSave(e) {
     e.preventDefault();
 
     const name = $('#profile-name').value.trim();
@@ -1603,24 +1785,63 @@
       }
     }
 
-    const users = loadData(STORAGE_KEYS.users);
-    const idx = users.findIndex(u => u.id === currentUser.id);
-    if (idx === -1) return;
+    try {
+      // Update password via Firebase Auth if available
+      if (newPassword && firebaseAuth) {
+        const user = firebaseAuth.currentUser;
+        if (user) {
+          await user.updatePassword(newPassword);
+          toast('Password updated successfully', 'success');
+        }
+      }
 
-    users[idx].name = name;
-    users[idx].phone = phone;
-    users[idx].neighborhood = neighborhood;
-    if (newPassword) users[idx].password = newPassword;
+      // Update profile in database
+      if (firebaseAuth && firebaseDB) {
+        const user = firebaseAuth.currentUser;
+        if (user) {
+          const userProfile = {
+            id: user.uid,
+            name,
+            email: currentUser.email,
+            phone,
+            neighborhood,
+            createdAt: currentUser.createdAt,
+          };
 
-    saveData(STORAGE_KEYS.users, users);
-    currentUser = users[idx];
-    saveCurrentUser(currentUser);
+          await firebaseDB.ref(`ridematch/users/${user.uid}`).set(userProfile);
+          currentUser = userProfile;
+          saveCurrentUser(userProfile);
+        }
+      } else {
+        // Fallback: localStorage mode
+        const users = loadData(STORAGE_KEYS.users);
+        const idx = users.findIndex(u => u.id === currentUser.id);
+        if (idx !== -1) {
+          users[idx].name = name;
+          users[idx].phone = phone;
+          users[idx].neighborhood = neighborhood;
+          if (newPassword) users[idx].password = newPassword; // ⚠️ Plain-text in fallback
 
-    // Update display name in navbar
-    $('#nav-user-name').textContent = currentUser.name.split(' ')[0];
+          saveData(STORAGE_KEYS.users, users);
+          currentUser = users[idx];
+          saveCurrentUser(currentUser);
+        }
+      }
 
-    closeProfileModal();
-    toast('Profile updated successfully', 'success');
+      // Update display name in navbar
+      $('#nav-user-name').textContent = currentUser.name.split(' ')[0];
+
+      closeProfileModal();
+      toast('Profile updated successfully', 'success');
+
+    } catch (err) {
+      console.error('Profile update error:', err);
+      if (err.code === 'auth/requires-recent-login') {
+        toast('Please log out and log in again to change your password', 'error');
+      } else {
+        toast(`Profile update failed: ${err.message}`, 'error');
+      }
+    }
   }
 
   // =========================================
@@ -2075,11 +2296,489 @@
   }
 
   // =========================================
+  //  KPI / IMPACT DASHBOARD
+  // =========================================
+
+  function calculateKPIs() {
+    const rides = loadData(STORAGE_KEYS.rides);
+    const completedRides = rides.filter(r => r.status === 'completed');
+
+    let totalCarsReduced = 0;
+    let totalCO2 = 0;
+    let totalCost = 0;
+    let totalDistance = 0;
+
+    completedRides.forEach(ride => {
+      const passengers = ride.riders ? ride.riders.length : 0;
+      // Default distance for demo: Cartago to AFZ Heredia (~38 km)
+      const distance = ride.distance || 38;
+
+      totalCarsReduced += passengers; // Each passenger = 1 car avoided
+      totalCO2 += distance * passengers * 0.12; // kg CO2 per km per car
+      totalCost += distance * passengers * 0.75; // USD per km
+      totalDistance += distance;
+    });
+
+    const totalTrees = Math.round(totalCO2 / 21); // 21 kg CO2 per tree per year
+    const parkingSpaces = Math.min(totalCarsReduced, 100); // Estimate parking impact
+
+    return {
+      totalCarsReduced,
+      totalCO2: Math.round(totalCO2 * 10) / 10, // Round to 1 decimal
+      totalCost: Math.round(totalCost),
+      totalTrees,
+      parkingSpaces: Math.min(parkingSpaces, totalCarsReduced > 0 ? Math.ceil(totalCarsReduced / 50) + 2 : 0),
+      totalRides: completedRides.length
+    };
+  }
+
+  function animateCounter(elementId, targetValue, suffix = '', duration = 1500) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const startValue = 0;
+    const startTime = performance.now();
+
+    function easeOutQuad(t) {
+      return t * (2 - t);
+    }
+
+    function updateCounter(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutQuad(progress);
+      const currentValue = Math.round(startValue + (targetValue - startValue) * easedProgress);
+
+      element.textContent = currentValue + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(updateCounter);
+      }
+    }
+
+    requestAnimationFrame(updateCounter);
+  }
+
+  function updateKPIDashboard() {
+    const kpis = calculateKPIs();
+
+    // Animate counters
+    animateCounter('kpi-cars', kpis.totalCarsReduced);
+    animateCounter('kpi-co2', kpis.totalCO2, ' kg');
+    animateCounter('kpi-cost', kpis.totalCost, ' USD');
+    animateCounter('kpi-parking', kpis.parkingSpaces);
+    animateCounter('kpi-trees', kpis.totalTrees);
+
+    // Update actual display
+    setTimeout(() => {
+      $('#kpi-cars').textContent = kpis.totalCarsReduced;
+      $('#kpi-co2').textContent = kpis.totalCO2 + ' kg';
+      $('#kpi-cost').textContent = '$' + kpis.totalCost.toLocaleString();
+      $('#kpi-parking').textContent = kpis.parkingSpaces;
+      $('#kpi-trees').textContent = kpis.totalTrees;
+    }, 1500);
+  }
+
+  // Update KPIs when navigating to impact page
+  const originalNavigateTo = navigateTo;
+  navigateTo = function(pageName) {
+    originalNavigateTo(pageName);
+    if (pageName === 'impact') {
+      updateKPIDashboard();
+    }
+  };
+
+  // =========================================
+  //  ANIMATED DEMO
+  // =========================================
+
+  const DEMO_DATA = {
+    route: {
+      origin: 'Cartago',
+      destination: 'AFZ Heredia',
+      distance: 38 // km
+    },
+    perTrip: {
+      carsReduced: 3,
+      co2: 13.68, // 38 × 3 × 0.12
+      cost: 85.50, // 38 × 3 × 0.75
+      parking: 3
+    },
+    roundTrip: {
+      co2: 27.36,
+      cost: 171
+    },
+    annual: {
+      trips: 104, // 2/week × 52 weeks
+      carsReduced: 312,
+      co2: 1420.8,
+      cost: 8892,
+      trees: 68
+    },
+    scale100: {
+      trips: 7800,
+      co2: 35520,
+      cost: 222300,
+      trees: 1700
+    }
+  };
+
+  const DEMO_TIMELINE = [
+    {
+      start: 0,
+      duration: 3000,
+      scene: 'intro',
+      mainText: 'CarPooling Impact Demo',
+      subText: 'Real commute: Cartago → AFZ Heredia (38 km)',
+      action: 'showRoute'
+    },
+    {
+      start: 3000,
+      duration: 4000,
+      scene: 'problem',
+      mainText: '4 employees, 4 separate cars',
+      subText: 'Every day, coworkers drive alone...',
+      action: 'show4Cars'
+    },
+    {
+      start: 7000,
+      duration: 4000,
+      scene: 'solution',
+      mainText: 'CarPooling: 4 people, 1 car',
+      subText: '3 cars avoided = Massive impact 🚗',
+      action: 'mergeTo1Car'
+    },
+    {
+      start: 11000,
+      duration: 8000,
+      scene: 'trip',
+      mainText: 'One Morning Commute',
+      subText: 'Watch the savings add up...',
+      action: 'animateTrip',
+      metrics: DEMO_DATA.perTrip
+    },
+    {
+      start: 19000,
+      duration: 6000,
+      scene: 'roundTrip',
+      mainText: 'Round Trip: Home → Work → Home',
+      subText: '2 trips per day doubles the impact',
+      action: 'doubleMetrics',
+      metrics: DEMO_DATA.roundTrip
+    },
+    {
+      start: 25000,
+      duration: 8000,
+      scene: 'weekly',
+      mainText: 'Twice a Week Throughout 2026',
+      subText: '104 carpools = 312 car trips avoided',
+      action: 'showAnnual',
+      metrics: DEMO_DATA.annual
+    },
+    {
+      start: 33000,
+      duration: 10000,
+      scene: 'annual',
+      mainText: '🎯 2026 Annual Impact',
+      subText: '1,421 kg CO2 saved = 68 trees planted! 🌳',
+      action: 'showBigNumbers',
+      metrics: DEMO_DATA.annual
+    },
+    {
+      start: 43000,
+      duration: 8000,
+      scene: 'scale',
+      mainText: 'Now Imagine 100 Employees...',
+      subText: '35.5 tons CO2 saved | $222,300 saved collectively',
+      action: 'showScale',
+      metrics: DEMO_DATA.scale100
+    },
+    {
+      start: 51000,
+      duration: 5000,
+      scene: 'cta',
+      mainText: 'Small Actions. Massive Impact. 🌍',
+      subText: 'Ready to start carpooling?',
+      action: 'showCTA'
+    }
+  ];
+
+  let demoState = {
+    isPlaying: false,
+    isPaused: false,
+    currentTime: 0,
+    startTime: null,
+    pauseTime: 0,
+    animationFrame: null
+  };
+
+  // Open demo modal
+  window.openDemoAnimation = function() {
+    const modal = $('#demo-animation-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      resetDemo();
+      initDemoMap();
+    }
+  };
+
+  // Bind launch button
+  function bindDemoButton() {
+    const launchBtn = $('#launch-demo-btn');
+    if (launchBtn) {
+      launchBtn.addEventListener('click', openDemoAnimation);
+    }
+  }
+
+  // Init demo map (simplified - no actual Google Maps for speed)
+  function initDemoMap() {
+    const mapCanvas = $('#demo-map');
+    if (!mapCanvas) return;
+
+    // Clear previous content
+    mapCanvas.innerHTML = '';
+
+    // Add decorative elements (simple visual representation)
+    const visualRoute = document.createElement('div');
+    visualRoute.style.cssText = `
+      position: absolute;
+      width: 60%;
+      height: 3px;
+      background: linear-gradient(90deg, rgba(15, 98, 254, 0.3) 0%, rgba(8, 189, 186, 0.3) 100%);
+      top: 50%;
+      left: 20%;
+      transform: translateY(-50%);
+    `;
+    mapCanvas.appendChild(visualRoute);
+
+    // Add location markers
+    const originMarker = document.createElement('div');
+    originMarker.innerHTML = '📍';
+    originMarker.style.cssText = `
+      position: absolute;
+      font-size: 2rem;
+      left: 15%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    `;
+    mapCanvas.appendChild(originMarker);
+
+    const destMarker = document.createElement('div');
+    destMarker.innerHTML = '📍';
+    destMarker.style.cssText = `
+      position: absolute;
+      font-size: 2rem;
+      right: 15%;
+      top: 50%;
+      transform: translate(50%, -50%);
+    `;
+    mapCanvas.appendChild(destMarker);
+
+    // Add car element
+    const car = document.createElement('div');
+    car.id = 'demo-animated-car';
+    car.innerHTML = '🚗';
+    car.className = 'demo-car';
+    car.style.cssText = `
+      left: 15%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    `;
+    mapCanvas.appendChild(car);
+  }
+
+  // Reset demo
+  function resetDemo() {
+    demoState = {
+      isPlaying: false,
+      isPaused: false,
+      currentTime: 0,
+      startTime: null,
+      pauseTime: 0,
+      animationFrame: null
+    };
+
+    // Reset UI
+    updateDemoText('CarPooling Impact Demo', 'Click Start to begin');
+    updateDemoMetrics(0, 0, 0, 0, 0);
+    updateProgressBar(0);
+    updatePlayButton(false);
+  }
+
+  // Update narrative text
+  function updateDemoText(main, sub) {
+    const mainEl = $('#demo-text-main');
+    const subEl = $('#demo-text-sub');
+    if (mainEl) mainEl.textContent = main;
+    if (subEl) subEl.textContent = sub;
+  }
+
+  // Update metrics
+  function updateDemoMetrics(distance, cars, co2, cost, parking) {
+    $('#demo-distance').textContent = distance + ' km';
+    $('#demo-cars').textContent = cars;
+    $('#demo-co2').textContent = co2 + ' kg';
+    $('#demo-cost').textContent = '$' + cost;
+    $('#demo-parking').textContent = parking;
+  }
+
+  // Update progress bar
+  function updateProgressBar(percent) {
+    const fill = $('#demo-progress-fill');
+    if (fill) fill.style.width = percent + '%';
+  }
+
+  // Update play button state
+  function updatePlayButton(isPlaying) {
+    const icon = $('#demo-play-icon');
+    const text = $('#demo-play-text');
+    if (icon) icon.textContent = isPlaying ? '⏸' : '▶';
+    if (text) text.textContent = isPlaying ? 'Pause' : 'Resume';
+  }
+
+  // Main animation loop
+  function runDemoAnimation(timestamp) {
+    if (!demoState.isPlaying) return;
+
+    if (!demoState.startTime) {
+      demoState.startTime = timestamp - demoState.pauseTime;
+    }
+
+    demoState.currentTime = timestamp - demoState.startTime;
+
+    // Find current scene
+    const scene = DEMO_TIMELINE.find(s =>
+      demoState.currentTime >= s.start &&
+      demoState.currentTime < s.start + s.duration
+    );
+
+    if (scene) {
+      updateScene(scene, demoState.currentTime - scene.start);
+    }
+
+    // Update progress
+    const totalDuration = 56000; // ~56 seconds
+    const progress = Math.min((demoState.currentTime / totalDuration) * 100, 100);
+    updateProgressBar(progress);
+
+    // Check if finished
+    if (demoState.currentTime >= totalDuration) {
+      endDemo();
+      return;
+    }
+
+    demoState.animationFrame = requestAnimationFrame(runDemoAnimation);
+  }
+
+  // Update scene
+  function updateScene(scene, elapsed) {
+    const progress = elapsed / scene.duration;
+
+    // Update text if scene changed
+    if (!scene.textUpdated) {
+      updateDemoText(scene.mainText, scene.subText);
+      scene.textUpdated = true;
+    }
+
+    // Scene-specific actions
+    if (scene.action === 'animateTrip' && scene.metrics) {
+      const currentDistance = Math.round(38 * progress);
+      const currentCars = Math.min(Math.round(scene.metrics.carsReduced * progress), scene.metrics.carsReduced);
+      const currentCO2 = (scene.metrics.co2 * progress).toFixed(2);
+      const currentCost = (scene.metrics.cost * progress).toFixed(2);
+
+      updateDemoMetrics(currentDistance, currentCars, currentCO2, currentCost, scene.metrics.parking);
+
+      // Move car
+      const car = $('#demo-animated-car');
+      if (car) {
+        const leftPos = 15 + (65 * progress);
+        car.style.left = leftPos + '%';
+        car.style.opacity = '1';
+      }
+    } else if (scene.action === 'showBigNumbers' && scene.metrics) {
+      updateDemoMetrics(
+        38,
+        scene.metrics.carsReduced,
+        Math.round(scene.metrics.co2),
+        Math.round(scene.metrics.cost),
+        scene.metrics.carsReduced > 0 ? Math.ceil(scene.metrics.carsReduced / 50) : 0
+      );
+    } else if (scene.action === 'showScale' && scene.metrics) {
+      updateDemoMetrics(
+        38,
+        scene.metrics.trips,
+        Math.round(scene.metrics.co2),
+        Math.round(scene.metrics.cost),
+        75
+      );
+    }
+  }
+
+  // End demo
+  function endDemo() {
+    demoState.isPlaying = false;
+    updatePlayButton(false);
+    updateProgressBar(100);
+    updateDemoText('Demo Complete! 🎉', 'Ready to make an impact?');
+  }
+
+  // Control handlers
+  function handlePlayPause() {
+    if (!demoState.isPlaying) {
+      // Start or resume
+      demoState.isPlaying = true;
+      demoState.isPaused = false;
+      updatePlayButton(true);
+      demoState.animationFrame = requestAnimationFrame(runDemoAnimation);
+    } else {
+      // Pause
+      demoState.isPlaying = false;
+      demoState.isPaused = true;
+      demoState.pauseTime = demoState.currentTime;
+      demoState.startTime = null;
+      updatePlayButton(false);
+      if (demoState.animationFrame) {
+        cancelAnimationFrame(demoState.animationFrame);
+      }
+    }
+  }
+
+  function handleDemoRestart() {
+    if (demoState.animationFrame) {
+      cancelAnimationFrame(demoState.animationFrame);
+    }
+    resetDemo();
+    initDemoMap();
+  }
+
+  function handleDemoClose() {
+    if (demoState.animationFrame) {
+      cancelAnimationFrame(demoState.animationFrame);
+    }
+    const modal = $('#demo-animation-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    resetDemo();
+  }
+
+  // Bind demo controls
+  function bindDemoControls() {
+    $('#demo-play-pause')?.addEventListener('click', handlePlayPause);
+    $('#demo-restart')?.addEventListener('click', handleDemoRestart);
+    $('#demo-close')?.addEventListener('click', handleDemoClose);
+  }
+
+  // =========================================
   //  BOOT
   // =========================================
   document.addEventListener('DOMContentLoaded', async () => {
     await initFirebaseSync(); // pull shared data before seeding/rendering
     seedDemoData();
     init();
+    bindDemoButton();
+    bindDemoControls();
   });
 })();

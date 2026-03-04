@@ -1,6 +1,8 @@
-# 🚗 IBM RideMatch — Carpooling for IBM Costa Rica
+# 🚗 CarPooling App — Enterprise Carpooling Solution (DEMO)
 
-**A Progressive Web App (PWA) for coordinating carpools among IBM employees commuting to AFZ Building F30, Heredia, Costa Rica.**
+**⚠️ DEMO MODE ACTIVE** — This is a demonstration version with test accounts only.
+
+**A Progressive Web App (PWA) for coordinating carpools with live environmental impact tracking and KPI visualization.**
 
 [![Security Audit](https://img.shields.io/badge/security-needs_improvement-red)](.centaur/audit/security-audit-2026-03-03.md)
 [![Test Coverage](https://img.shields.io/badge/coverage-0%25-red)](#)
@@ -8,36 +10,59 @@
 
 ---
 
-## 🎯 What is RideMatch?
+## 🎯 What is CarPooling App?
 
-RideMatch connects IBM employees who want to share rides for their daily commute, reducing costs, traffic, and environmental impact.
+An enterprise carpooling solution that connects employees who want to share rides, with real-time KPI tracking showing environmental and cost impact.
 
-### Key Features
+### ✨ Key Features
 
 - 🚙 **Offer & Find Rides** — Post available seats or search for rides
-- 📍 **Smart Matching** — Filter by neighborhood, direction (to/from IBM), date
+- 📊 **Impact Dashboard** — Live KPI tracking (CO2 saved, costs reduced, cars avoided)
+- 🎬 **Interactive Demo** — 60-second animated visualization of carpooling impact
 - 💬 **Group Chat** — Coordinate pickup details per ride
-- 📍 **Live Tracking** — Real-time GPS tracking with ETA (demo + live modes)
+- 📍 **Live Tracking** — Real-time GPS tracking with ETA
 - ⭐ **Rating System** — Rate drivers for reliability
 - 🔔 **Notifications** — Stay updated on ride requests and approvals
 - 📱 **PWA** — Install on mobile, works offline
-- ☁️ **Cloud Sync** — Multi-device real-time synchronization
+- ☁️ **Cloud Sync** — Multi-device real-time synchronization via Firebase
+
+### 🎬 **NEW: Interactive Impact Demo**
+
+Click the **"▶ Launch Demo"** button in the Impact tab to watch a 60-second visualization showing:
+- How 4 employees carpooling twice a week saves **1,420 kg CO2 per year** (equivalent to planting 68 trees)
+- Real-time metrics animation: distance traveled, costs saved, emissions reduced
+- Scaling potential: 100 employees = **35.5 tons CO2 saved** annually
 
 ---
 
-## 🚨 **Important: Security Status**
+## 🔒 **Demo Mode — Safe Testing Environment**
 
-**⚠️ THIS APP IS NOT PRODUCTION-READY**
+**⚠️ DEMO CREDENTIALS ONLY**
 
-A comprehensive security audit (2026-03-03) identified **critical vulnerabilities**:
+This demo version uses test accounts only. Do NOT enter real credentials.
 
-- ✅ **Exposed API keys** ~~in source code~~ → **FIXED** (now using config.js)
-- 🔴 **Plain-text password storage** → In progress (Phase 2)
-- 🔴 **No server-side validation** → Planned (Phase 3)
+### How to Use Demo Mode:
 
-**Status:** Security remediation in progress (Sprint 001)
-- **Phase 1 (✅ COMPLETE):** Environment configuration
-- **Phase 2 (🔄 NEXT):** Firebase Authentication migration
+1. **Registration/Login:**
+   - Email: `yourname@test.com` (any name, must end with `@test.com`)
+   - Password: `Test123` (exactly this, case-sensitive)
+   - Examples: `maria.silva@test.com`, `john.doe@test.com`
+
+2. **Demo Features:**
+   - All features are fully functional with test data
+   - Impact dashboard shows real KPI calculations
+   - Interactive demo animation available in Impact tab
+   - Firebase backend working (with test configuration)
+
+3. **Security Note:**
+   - Only `@test.com` emails accepted
+   - Only `Test123` password works
+   - Demo warning banner appears (closeable)
+   - One-time modal explains demo mode
+
+### Real Authentication Coming Soon
+
+Once approved, the app will support real email authentication via Firebase Auth with proper security.
 - **Phase 3 (📋 PLANNED):** Firebase Security Rules
 
 See [Security Audit Report](.centaur/audit/security-audit-2026-03-03.md) for details.
