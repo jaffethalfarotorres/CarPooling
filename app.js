@@ -2493,7 +2493,13 @@
     }
   }
 
-  // Init demo map (simplified - no actual Google Maps for speed)
+  // Uber-style Google Maps demo
+  let demoMap = null;
+  let demoCarMarker = null;
+  let demoRoutePath = null;
+  let demoRouteCoordinates = [];
+
+  // Init demo map with real Google Maps
   function initDemoMap() {
     const mapCanvas = $('#demo-map');
     if (!mapCanvas) return;
@@ -2501,54 +2507,125 @@
     // Clear previous content
     mapCanvas.innerHTML = '';
 
-    // Add decorative elements (simple visual representation)
-    const visualRoute = document.createElement('div');
-    visualRoute.style.cssText = `
-      position: absolute;
-      width: 60%;
-      height: 3px;
-      background: linear-gradient(90deg, rgba(15, 98, 254, 0.3) 0%, rgba(8, 189, 186, 0.3) 100%);
-      top: 50%;
-      left: 20%;
-      transform: translateY(-50%);
-    `;
-    mapCanvas.appendChild(visualRoute);
+    // Initialize Google Map
+    const midLat = (DEMO_DATA.route.originCoords.lat + DEMO_DATA.route.destinationCoords.lat) / 2;
+    const midLng = (DEMO_DATA.route.originCoords.lng + DEMO_DATA.route.destinationCoords.lng) / 2;
 
-    // Add location markers
-    const originMarker = document.createElement('div');
-    originMarker.innerHTML = '📍';
-    originMarker.style.cssText = `
-      position: absolute;
-      font-size: 2rem;
-      left: 15%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-    `;
-    mapCanvas.appendChild(originMarker);
+    demoMap = new google.maps.Map(mapCanvas, {
+      center: { lat: midLat, lng: midLng },
+      zoom: 12,
+      styles: [
+        {
+          "featureType": "all",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#1a1f2e" }]
+        },
+        {
+          "featureType": "all",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#8a8a8a" }]
+        },
+        {
+          "featureType": "all",
+          "elementType": "labels.text.stroke",
+          "stylers": [{ "color": "#1a1f2e" }]
+        },
+        {
+          "featureType": "road",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#2d3748" }]
+        },
+        {
+          "featureType": "road",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#c0c0c0" }]
+        },
+        {
+          "featureType": "water",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#0f1419" }]
+        }
+      ],
+      disableDefaultUI: true,
+      zoomControl: false,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false
+    });
 
-    const destMarker = document.createElement('div');
-    destMarker.innerHTML = '📍';
-    destMarker.style.cssText = `
-      position: absolute;
-      font-size: 2rem;
-      right: 15%;
-      top: 50%;
-      transform: translate(50%, -50%);
-    `;
-    mapCanvas.appendChild(destMarker);
+    // Add origin marker (green pin)
+    new google.maps.Marker({
+      position: DEMO_DATA.route.originCoords,
+      map: demoMap,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: '#42be65',
+        fillOpacity: 1,
+        strokeColor: '#fff',
+        strokeWeight: 2
+      },
+      title: 'Plaza de la Cultura, San José'
+    });
 
-    // Add car element
-    const car = document.createElement('div');
-    car.id = 'demo-animated-car';
-    car.innerHTML = '🚗';
-    car.className = 'demo-car';
-    car.style.cssText = `
-      left: 15%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      opacity: 0;
-    `;
-    mapCanvas.appendChild(car);
+    // Add destination marker (red pin)
+    new google.maps.Marker({
+      position: DEMO_DATA.route.destinationCoords,
+      map: demoMap,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: '#da1e28',
+        fillOpacity: 1,
+        strokeColor: '#fff',
+        strokeWeight: 2
+      },
+      title: 'IBM AFZ Heredia'
+    });
+
+    // Get route from Directions API
+    const directionsService = new google.maps.DirectionsService();
+    const request = {
+      origin: DEMO_DATA.route.originCoords,
+      destination: DEMO_DATA.route.destinationCoords,
+      travelMode: google.maps.TravelMode.DRIVING
+    };
+
+    directionsService.route(request, (result, status) => {
+      if (status === 'OK') {
+        // Draw route path
+        const route = result.routes[0].overview_path;
+        demoRouteCoordinates = route;
+
+        demoRoutePath = new google.maps.Polyline({
+          path: route,
+          geodesic: true,
+          strokeColor: '#0f62fe',
+          strokeOpacity: 0.8,
+          strokeWeight: 5,
+          map: demoMap
+        });
+
+        // Create car marker (initially hidden at origin)
+        demoCarMarker = new google.maps.Marker({
+          position: DEMO_DATA.route.originCoords,
+          map: demoMap,
+          icon: {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="18" fill="#0f62fe" stroke="#fff" stroke-width="2"/>
+                <text x="20" y="28" font-size="20" text-anchor="middle" fill="#fff">🚗</text>
+              </svg>
+            `),
+            scaledSize: new google.maps.Size(40, 40),
+            anchor: new google.maps.Point(20, 20)
+          },
+          zIndex: 1000
+        });
+
+        demoCarMarker.setVisible(false);
+      }
+    });
   }
 
   // Reset demo
@@ -2567,6 +2644,25 @@
     updateDemoMetrics(0, 0, 0, 0, 0);
     updateProgressBar(0);
     updatePlayButton(false);
+
+    // Reset car marker to origin
+    if (demoCarMarker) {
+      demoCarMarker.setPosition(DEMO_DATA.route.originCoords);
+      demoCarMarker.setVisible(false);
+    }
+
+    // Reset map view
+    if (demoMap) {
+      const midLat = (DEMO_DATA.route.originCoords.lat + DEMO_DATA.route.destinationCoords.lat) / 2;
+      const midLng = (DEMO_DATA.route.originCoords.lng + DEMO_DATA.route.destinationCoords.lng) / 2;
+      demoMap.setCenter({ lat: midLat, lng: midLng });
+      demoMap.setZoom(12);
+    }
+
+    // Reset scene flags
+    DEMO_TIMELINE.forEach(scene => {
+      scene.textUpdated = false;
+    });
   }
 
   // Update narrative text
@@ -2646,23 +2742,50 @@
 
     // Scene-specific actions
     if (scene.action === 'animateTrip' && scene.metrics) {
-      const currentDistance = Math.round(38 * progress);
+      const currentDistance = Math.round(15 * progress);
       const currentCars = Math.min(Math.round(scene.metrics.carsReduced * progress), scene.metrics.carsReduced);
       const currentCO2 = (scene.metrics.co2 * progress).toFixed(2);
       const currentCost = (scene.metrics.cost * progress).toFixed(2);
 
       updateDemoMetrics(currentDistance, currentCars, currentCO2, currentCost, scene.metrics.parking);
 
-      // Move car
-      const car = $('#demo-animated-car');
-      if (car) {
-        const leftPos = 15 + (65 * progress);
-        car.style.left = leftPos + '%';
-        car.style.opacity = '1';
+      // Animate car marker along actual route (Uber-style)
+      if (demoCarMarker && demoRouteCoordinates.length > 0) {
+        demoCarMarker.setVisible(true);
+        const routeIndex = Math.floor(progress * (demoRouteCoordinates.length - 1));
+        const position = demoRouteCoordinates[routeIndex];
+
+        // Smooth animation with easing
+        if (position) {
+          demoCarMarker.setPosition(position);
+
+          // Calculate heading for car rotation (if next point exists)
+          if (routeIndex < demoRouteCoordinates.length - 1) {
+            const nextPos = demoRouteCoordinates[routeIndex + 1];
+            const heading = google.maps.geometry.spherical.computeHeading(position, nextPos);
+
+            // Update car icon with rotation
+            demoCarMarker.setIcon({
+              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                  <g transform="rotate(${heading} 20 20)">
+                    <circle cx="20" cy="20" r="18" fill="#0f62fe" stroke="#fff" stroke-width="2"/>
+                    <text x="20" y="28" font-size="20" text-anchor="middle" fill="#fff">🚗</text>
+                  </g>
+                </svg>
+              `),
+              scaledSize: new google.maps.Size(40, 40),
+              anchor: new google.maps.Point(20, 20)
+            });
+          }
+
+          // Pan map to follow car
+          demoMap.panTo(position);
+        }
       }
     } else if (scene.action === 'showBigNumbers' && scene.metrics) {
       updateDemoMetrics(
-        38,
+        15,
         scene.metrics.carsReduced,
         Math.round(scene.metrics.co2),
         Math.round(scene.metrics.cost),
@@ -2670,7 +2793,7 @@
       );
     } else if (scene.action === 'showScale' && scene.metrics) {
       updateDemoMetrics(
-        38,
+        15,
         scene.metrics.trips,
         Math.round(scene.metrics.co2),
         Math.round(scene.metrics.cost),
