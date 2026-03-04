@@ -274,6 +274,76 @@
         </div>
       </section>
 
+      <!-- === IMPACT / KPI DASHBOARD === -->
+      <section id="page-impact" class="page">
+        <div class="page-header">
+          <h1>🌍 Environmental Impact</h1>
+          <p class="page-subtitle">See the difference we're making together</p>
+        </div>
+
+        <!-- Demo CTA Hero -->
+        <div class="impact-demo-hero glass-card" style="margin-bottom: var(--sp-6); padding: var(--sp-6); text-align: center; background: linear-gradient(135deg, rgba(15, 98, 254, 0.1) 0%, rgba(66, 190, 101, 0.1) 100%);">
+          <h2 style="font-size: var(--fs-xl); margin-bottom: var(--sp-3);">🎬 See CarPooling in Action</h2>
+          <p style="font-size: var(--fs-base); color: var(--text-secondary); margin-bottom: var(--sp-5);">
+            Watch an interactive visualization showing how 4 Costa Ricans save <strong>2,250 kg CO2</strong> per year<br>
+            <small style="opacity: 0.8;">Cartago → AFZ Heredia Free Zone | Real Costa Rica fuel prices</small>
+          </p>
+          <button id="launch-demo-btn" class="btn btn-primary" style="font-size: var(--fs-md); padding: 0.875rem 2rem;">
+            ▶ Launch Interactive Demo
+          </button>
+        </div>
+
+        <!-- KPI Cards Grid -->
+        <div class="impact-grid">
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">🚗</div>
+            <div class="impact-value" id="kpi-cars">0</div>
+            <div class="impact-label">Cars Reduced</div>
+            <div class="impact-sublabel">Trips avoided</div>
+          </div>
+
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">🌱</div>
+            <div class="impact-value" id="kpi-co2">0 kg</div>
+            <div class="impact-label">CO2 Saved</div>
+            <div class="impact-sublabel">≈ <span id="kpi-trees">0</span> trees planted</div>
+          </div>
+
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">💰</div>
+            <div class="impact-value" id="kpi-cost">$0</div>
+            <div class="impact-label">Cost Savings</div>
+            <div class="impact-sublabel">Collective fuel savings</div>
+          </div>
+
+          <div class="impact-card glass-card">
+            <div class="impact-icon" style="font-size: 2.5rem;">🅿️</div>
+            <div class="impact-value" id="kpi-parking">0</div>
+            <div class="impact-label">Parking Spaces</div>
+            <div class="impact-sublabel">Freed up daily</div>
+          </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="glass-card" style="margin-top: var(--sp-6); padding: var(--sp-6);">
+          <h3 style="font-size: var(--fs-lg); margin-bottom: var(--sp-4);">📊 How We Calculate Impact (Costa Rica Context)</h3>
+          <div style="color: var(--text-secondary); line-height: 1.6;">
+            <p style="margin-bottom: var(--sp-3);">
+              <strong>CO2 Emissions:</strong> 0.19 kg CO2 per km per car (based on Costa Rica average: 12 km/L fuel efficiency, 2.3 kg CO2/L gasoline)
+            </p>
+            <p style="margin-bottom: var(--sp-3);">
+              <strong>Cost Savings:</strong> $0.28/km (₡695/L fuel ÷ 12 km/L = $0.18 + $0.10 maintenance) — Real 2024 Costa Rica prices
+            </p>
+            <p style="margin-bottom: var(--sp-3);">
+              <strong>Trees Equivalent:</strong> One tree absorbs approximately 21 kg CO2 per year (global standard)
+            </p>
+            <p style="margin: 0;">
+              <strong>Parking Impact:</strong> Each carpool frees up parking spaces at workplace
+            </p>
+          </div>
+        </div>
+      </section>
+
       <!-- === MY RIDES === -->
       <section id="page-myrides" class="page">
         <div class="page-header">
@@ -353,6 +423,12 @@
           <line x1="8" y1="12" x2="16" y2="12" />
         </svg>
         <span>Offer</span>
+      </button>
+      <button class="nav-item" data-page="impact" id="nav-impact">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+        </svg>
+        <span>Impact</span>
       </button>
       <button class="nav-item" data-page="myrides" id="nav-myrides">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -497,6 +573,58 @@
           <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
         </svg>
       </button>
+    </div>
+  </div>
+
+  <!-- ===== DEMO ANIMATION MODAL ===== -->
+  <div id="demo-animation-modal" class="modal-overlay hidden" style="background: rgba(0, 0, 0, 0.95);">
+    <div class="demo-animation-container">
+      <!-- Map Container -->
+      <div id="demo-map" class="demo-map-canvas"></div>
+
+      <!-- Narrative Text Overlay -->
+      <div id="demo-narrative" class="demo-narrative">
+        <h2 id="demo-text-main" class="demo-text-main">CarPooling Impact Demo</h2>
+        <p id="demo-text-sub" class="demo-text-sub">Watch how carpooling transforms commuting</p>
+      </div>
+
+      <!-- Metrics Panel -->
+      <div id="demo-metrics" class="demo-metrics-panel">
+        <div class="demo-metric">
+          <span class="demo-metric-label">Distance</span>
+          <span class="demo-metric-value" id="demo-distance">0 km</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">🚗 Cars Reduced</span>
+          <span class="demo-metric-value" id="demo-cars">0</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">🌱 CO2 Saved</span>
+          <span class="demo-metric-value" id="demo-co2">0 kg</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">💰 Cost Saved</span>
+          <span class="demo-metric-value" id="demo-cost">$0</span>
+        </div>
+        <div class="demo-metric">
+          <span class="demo-metric-label">🅿️ Parking Freed</span>
+          <span class="demo-metric-value" id="demo-parking">0</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="demo-progress-bar">
+        <div id="demo-progress-fill" class="demo-progress-fill"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="demo-controls">
+        <button id="demo-play-pause" class="demo-btn demo-btn-primary">
+          <span id="demo-play-icon">▶</span> <span id="demo-play-text">Start Demo</span>
+        </button>
+        <button id="demo-restart" class="demo-btn">↻ Restart</button>
+        <button id="demo-close" class="demo-btn">✕ Close</button>
+      </div>
     </div>
   </div>
 

@@ -2025,11 +2025,12 @@
     const d3 = fmt(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3));
 
     const users = [
-      { id: 'u1', name: 'Demo One', email: 'demo1@ibm.com', phone: '+506 8811-1111', neighborhood: 'Escazú', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u2', name: 'Demo Two', email: 'demo2@ibm.com', phone: '+506 8822-2222', neighborhood: 'San Pedro', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u3', name: 'Demo Three', email: 'demo3@ibm.com', phone: '+506 8833-3333', neighborhood: 'Alajuela', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u4', name: 'Demo Four', email: 'demo4@ibm.com', phone: '+506 8844-4444', neighborhood: 'Curridabat', password: '123456', createdAt: new Date().toISOString() },
-      { id: 'u5', name: 'Demo Five', email: 'demo5@ibm.com', phone: '+506 8855-5555', neighborhood: 'Santa Ana', password: '123456', createdAt: new Date().toISOString() },
+      { id: 'demo', name: 'Demo User', email: 'demo@test.com', phone: '+506 8800-0000', neighborhood: 'San José', password: 'demo123', createdAt: new Date().toISOString() },
+      { id: 'u1', name: 'Demo One', email: 'demo1@test.com', phone: '+506 8811-1111', neighborhood: 'Escazú', password: '123456', createdAt: new Date().toISOString() },
+      { id: 'u2', name: 'Demo Two', email: 'demo2@test.com', phone: '+506 8822-2222', neighborhood: 'San Pedro', password: '123456', createdAt: new Date().toISOString() },
+      { id: 'u3', name: 'Demo Three', email: 'demo3@test.com', phone: '+506 8833-3333', neighborhood: 'Alajuela', password: '123456', createdAt: new Date().toISOString() },
+      { id: 'u4', name: 'Demo Four', email: 'demo4@test.com', phone: '+506 8844-4444', neighborhood: 'Curridabat', password: '123456', createdAt: new Date().toISOString() },
+      { id: 'u5', name: 'Demo Five', email: 'demo5@test.com', phone: '+506 8855-5555', neighborhood: 'Santa Ana', password: '123456', createdAt: new Date().toISOString() },
     ];
 
     const rides = [
@@ -2085,11 +2086,488 @@
   }
 
   // =========================================
+  //  KPI DASHBOARD & ANIMATED DEMO
+  // =========================================
+  function calculateKPIs() {
+    const rides = loadData(STORAGE_KEYS.rides);
+    const completedRides = rides.filter(r => r.status === 'completed');
+
+    let totalCarsReduced = 0;
+    let totalCO2 = 0;
+    let totalCost = 0;
+    let totalDistance = 0;
+
+    completedRides.forEach(ride => {
+      const passengers = ride.riders ? ride.riders.length : 0;
+      // Default distance for demo: Cartago to AFZ Heredia (~38 km)
+      const distance = ride.distance || 38;
+
+      totalCarsReduced += passengers; // Each passenger = 1 car avoided
+      totalCO2 += distance * passengers * 0.19; // kg CO2 per km (Costa Rica avg: 12km/L, 2.3kg CO2/L)
+      totalCost += distance * passengers * 0.28; // USD per km (Costa Rica: $0.18 fuel + $0.10 maintenance)
+      totalDistance += distance;
+    });
+
+    const totalTrees = Math.round(totalCO2 / 21); // 21 kg CO2 per tree per year
+    const parkingSpaces = Math.min(totalCarsReduced, 100); // Estimate parking impact
+
+    return {
+      totalCarsReduced,
+      totalCO2: Math.round(totalCO2 * 10) / 10, // Round to 1 decimal
+      totalCost: Math.round(totalCost),
+      totalTrees,
+      parkingSpaces: Math.min(parkingSpaces, totalCarsReduced > 0 ? Math.ceil(totalCarsReduced / 50) + 2 : 0),
+      totalRides: completedRides.length
+    };
+  }
+
+  function animateCounter(elementId, targetValue, suffix = '', duration = 1500) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    const startValue = 0;
+    const startTime = performance.now();
+
+    function easeOutQuad(t) {
+      return t * (2 - t);
+    }
+
+    function updateCounter(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutQuad(progress);
+      const currentValue = Math.round(startValue + (targetValue - startValue) * easedProgress);
+
+      element.textContent = currentValue + suffix;
+
+      if (progress < 1) {
+        requestAnimationFrame(updateCounter);
+      }
+    }
+
+    requestAnimationFrame(updateCounter);
+  }
+
+  function updateKPIDashboard() {
+    const kpis = calculateKPIs();
+
+    // Animate counters
+    animateCounter('kpi-cars', kpis.totalCarsReduced);
+    animateCounter('kpi-co2', kpis.totalCO2, ' kg');
+    animateCounter('kpi-cost', kpis.totalCost, ' USD');
+    animateCounter('kpi-parking', kpis.parkingSpaces);
+    animateCounter('kpi-trees', kpis.totalTrees);
+
+    // Update actual display
+    setTimeout(() => {
+      $('#kpi-cars').textContent = kpis.totalCarsReduced;
+      $('#kpi-co2').textContent = kpis.totalCO2 + ' kg';
+      $('#kpi-cost').textContent = '$' + kpis.totalCost.toLocaleString();
+      $('#kpi-parking').textContent = kpis.parkingSpaces;
+      $('#kpi-trees').textContent = kpis.totalTrees;
+    }, 1500);
+  }
+
+  // Update KPIs when navigating to impact page
+  const originalNavigateTo = navigateTo;
+  navigateTo = function(pageName) {
+    originalNavigateTo(pageName);
+    if (pageName === 'impact') {
+      updateKPIDashboard();
+    }
+  };
+
+  // =========================================
+  //  ANIMATED DEMO
+  // =========================================
+
+  const DEMO_DATA = {
+    route: {
+      origin: 'Cartago, Costa Rica',
+      destination: 'AFZ Heredia Free Zone',
+      distance: 38 // km (real commute distance)
+    },
+    perTrip: {
+      carsReduced: 3,
+      co2: 21.66, // 38 km × 3 passengers × 0.19 kg CO2/km (Costa Rica avg)
+      cost: 31.92, // 38 km × 3 × $0.28/km (Costa Rica fuel + maintenance)
+      parking: 3
+    },
+    roundTrip: {
+      co2: 43.32, // 21.66 × 2
+      cost: 63.84 // $31.92 × 2
+    },
+    annual: {
+      trips: 104, // 2 trips/week × 52 weeks
+      carsReduced: 312, // 104 trips × 3 passengers
+      co2: 2250, // 43.32 kg × 52 weeks
+      cost: 6640, // $63.84 × 104 trips
+      trees: 107 // 2250 kg / 21 kg per tree per year
+    },
+    scale100: {
+      trips: 7800, // 100 employees / 4 per car × 2 trips/week × 52 weeks × 3 cars
+      co2: 56250, // 2250 kg × 25 groups
+      cost: 166000, // $6640 × 25 groups
+      trees: 2679 // 56250 / 21
+    }
+  };
+
+  const DEMO_TIMELINE = [
+    {
+      start: 0,
+      duration: 3000,
+      scene: 'intro',
+      mainText: 'CarPooling Impact Demo - Costa Rica',
+      subText: 'Real commute: Cartago → AFZ Heredia Free Zone (38 km)',
+      action: 'showRoute'
+    },
+    {
+      start: 3000,
+      duration: 4000,
+      scene: 'problem',
+      mainText: '4 employees, 4 separate cars',
+      subText: 'Every day, coworkers drive alone...',
+      action: 'show4Cars'
+    },
+    {
+      start: 7000,
+      duration: 4000,
+      scene: 'solution',
+      mainText: 'CarPooling: 4 people, 1 car',
+      subText: '3 cars avoided = Massive impact 🚗',
+      action: 'mergeTo1Car'
+    },
+    {
+      start: 11000,
+      duration: 8000,
+      scene: 'trip',
+      mainText: 'One Morning Commute',
+      subText: 'Watch the savings add up...',
+      action: 'animateTrip',
+      metrics: DEMO_DATA.perTrip
+    },
+    {
+      start: 19000,
+      duration: 6000,
+      scene: 'roundTrip',
+      mainText: 'Round Trip: Home → Work → Home',
+      subText: '2 trips per day doubles the impact',
+      action: 'doubleMetrics',
+      metrics: DEMO_DATA.roundTrip
+    },
+    {
+      start: 25000,
+      duration: 8000,
+      scene: 'weekly',
+      mainText: 'Twice a Week Throughout 2026',
+      subText: '104 carpools = 312 car trips avoided',
+      action: 'showAnnual',
+      metrics: DEMO_DATA.annual
+    },
+    {
+      start: 33000,
+      duration: 10000,
+      scene: 'annual',
+      mainText: '🎯 2026 Annual Impact',
+      subText: '2,250 kg CO2 saved = 107 trees planted! 🌳',
+      action: 'showBigNumbers',
+      metrics: DEMO_DATA.annual
+    },
+    {
+      start: 43000,
+      duration: 8000,
+      scene: 'scale',
+      mainText: 'Now Imagine 100 Employees...',
+      subText: '56.3 tons CO2 saved | ₡92M ($166,000) saved collectively',
+      action: 'showScale',
+      metrics: DEMO_DATA.scale100
+    },
+    {
+      start: 51000,
+      duration: 5000,
+      scene: 'cta',
+      mainText: 'Small Actions. Massive Impact. 🌍',
+      subText: 'Ready to start carpooling?',
+      action: 'showCTA'
+    }
+  ];
+
+  let demoState = {
+    isPlaying: false,
+    isPaused: false,
+    currentTime: 0,
+    startTime: null,
+    pauseTime: 0,
+    animationFrame: null
+  };
+
+  // Open demo modal
+  window.openDemoAnimation = function() {
+    const modal = $('#demo-animation-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      resetDemo();
+      initDemoMap();
+    }
+  };
+
+  // Bind launch button
+  function bindDemoButton() {
+    const launchBtn = $('#launch-demo-btn');
+    if (launchBtn) {
+      launchBtn.addEventListener('click', openDemoAnimation);
+    }
+  }
+
+  // Init demo map (simplified - no actual Google Maps for speed)
+  function initDemoMap() {
+    const mapCanvas = $('#demo-map');
+    if (!mapCanvas) return;
+
+    // Clear previous content
+    mapCanvas.innerHTML = '';
+
+    // Add decorative elements (simple visual representation)
+    const visualRoute = document.createElement('div');
+    visualRoute.style.cssText = `
+      position: absolute;
+      width: 60%;
+      height: 3px;
+      background: linear-gradient(90deg, rgba(15, 98, 254, 0.3) 0%, rgba(8, 189, 186, 0.3) 100%);
+      top: 50%;
+      left: 20%;
+      transform: translateY(-50%);
+    `;
+    mapCanvas.appendChild(visualRoute);
+
+    // Add location markers
+    const originMarker = document.createElement('div');
+    originMarker.innerHTML = '📍';
+    originMarker.style.cssText = `
+      position: absolute;
+      font-size: 2rem;
+      left: 15%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    `;
+    mapCanvas.appendChild(originMarker);
+
+    const destMarker = document.createElement('div');
+    destMarker.innerHTML = '📍';
+    destMarker.style.cssText = `
+      position: absolute;
+      font-size: 2rem;
+      right: 15%;
+      top: 50%;
+      transform: translate(50%, -50%);
+    `;
+    mapCanvas.appendChild(destMarker);
+
+    // Add car element
+    const car = document.createElement('div');
+    car.id = 'demo-animated-car';
+    car.innerHTML = '🚗';
+    car.className = 'demo-car';
+    car.style.cssText = `
+      left: 15%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    `;
+    mapCanvas.appendChild(car);
+  }
+
+  // Reset demo
+  function resetDemo() {
+    demoState = {
+      isPlaying: false,
+      isPaused: false,
+      currentTime: 0,
+      startTime: null,
+      pauseTime: 0,
+      animationFrame: null
+    };
+
+    // Reset UI
+    updateDemoText('CarPooling Impact Demo', 'Click Start to begin');
+    updateDemoMetrics(0, 0, 0, 0, 0);
+    updateProgressBar(0);
+    updatePlayButton(false);
+  }
+
+  // Update narrative text
+  function updateDemoText(main, sub) {
+    const mainEl = $('#demo-text-main');
+    const subEl = $('#demo-text-sub');
+    if (mainEl) mainEl.textContent = main;
+    if (subEl) subEl.textContent = sub;
+  }
+
+  // Update metrics
+  function updateDemoMetrics(distance, cars, co2, cost, parking) {
+    $('#demo-distance').textContent = distance + ' km';
+    $('#demo-cars').textContent = cars;
+    $('#demo-co2').textContent = co2 + ' kg';
+    $('#demo-cost').textContent = '$' + cost;
+    $('#demo-parking').textContent = parking;
+  }
+
+  // Update progress bar
+  function updateProgressBar(percent) {
+    const fill = $('#demo-progress-fill');
+    if (fill) fill.style.width = percent + '%';
+  }
+
+  // Update play button state
+  function updatePlayButton(isPlaying) {
+    const icon = $('#demo-play-icon');
+    const text = $('#demo-play-text');
+    if (icon) icon.textContent = isPlaying ? '⏸' : '▶';
+    if (text) text.textContent = isPlaying ? 'Pause' : 'Resume';
+  }
+
+  // Main animation loop
+  function runDemoAnimation(timestamp) {
+    if (!demoState.isPlaying) return;
+
+    if (!demoState.startTime) {
+      demoState.startTime = timestamp - demoState.pauseTime;
+    }
+
+    demoState.currentTime = timestamp - demoState.startTime;
+
+    // Find current scene
+    const scene = DEMO_TIMELINE.find(s =>
+      demoState.currentTime >= s.start &&
+      demoState.currentTime < s.start + s.duration
+    );
+
+    if (scene) {
+      updateScene(scene, demoState.currentTime - scene.start);
+    }
+
+    // Update progress
+    const totalDuration = 56000; // ~56 seconds
+    const progress = Math.min((demoState.currentTime / totalDuration) * 100, 100);
+    updateProgressBar(progress);
+
+    // Check if finished
+    if (demoState.currentTime >= totalDuration) {
+      endDemo();
+      return;
+    }
+
+    demoState.animationFrame = requestAnimationFrame(runDemoAnimation);
+  }
+
+  // Update scene
+  function updateScene(scene, elapsed) {
+    const progress = elapsed / scene.duration;
+
+    // Update text if scene changed
+    if (!scene.textUpdated) {
+      updateDemoText(scene.mainText, scene.subText);
+      scene.textUpdated = true;
+    }
+
+    // Scene-specific actions
+    if (scene.action === 'animateTrip' && scene.metrics) {
+      const currentDistance = Math.round(38 * progress);
+      const currentCars = Math.min(Math.round(scene.metrics.carsReduced * progress), scene.metrics.carsReduced);
+      const currentCO2 = (scene.metrics.co2 * progress).toFixed(2);
+      const currentCost = (scene.metrics.cost * progress).toFixed(2);
+
+      updateDemoMetrics(currentDistance, currentCars, currentCO2, currentCost, scene.metrics.parking);
+
+      // Move car
+      const car = $('#demo-animated-car');
+      if (car) {
+        const leftPos = 15 + (65 * progress);
+        car.style.left = leftPos + '%';
+        car.style.opacity = '1';
+      }
+    } else if (scene.action === 'showBigNumbers' && scene.metrics) {
+      updateDemoMetrics(
+        38,
+        scene.metrics.carsReduced,
+        Math.round(scene.metrics.co2),
+        Math.round(scene.metrics.cost),
+        scene.metrics.carsReduced > 0 ? Math.ceil(scene.metrics.carsReduced / 50) : 0
+      );
+    } else if (scene.action === 'showScale' && scene.metrics) {
+      updateDemoMetrics(
+        38,
+        scene.metrics.trips,
+        Math.round(scene.metrics.co2),
+        Math.round(scene.metrics.cost),
+        75
+      );
+    }
+  }
+
+  // End demo
+  function endDemo() {
+    demoState.isPlaying = false;
+    updatePlayButton(false);
+    updateProgressBar(100);
+    updateDemoText('Demo Complete! 🎉', 'Ready to make an impact?');
+  }
+
+  // Control handlers
+  function handlePlayPause() {
+    if (!demoState.isPlaying) {
+      // Start or resume
+      demoState.isPlaying = true;
+      demoState.isPaused = false;
+      updatePlayButton(true);
+      demoState.animationFrame = requestAnimationFrame(runDemoAnimation);
+    } else {
+      // Pause
+      demoState.isPlaying = false;
+      demoState.isPaused = true;
+      demoState.pauseTime = demoState.currentTime;
+      demoState.startTime = null;
+      updatePlayButton(false);
+      if (demoState.animationFrame) {
+        cancelAnimationFrame(demoState.animationFrame);
+      }
+    }
+  }
+
+  function handleDemoRestart() {
+    if (demoState.animationFrame) {
+      cancelAnimationFrame(demoState.animationFrame);
+    }
+    resetDemo();
+    initDemoMap();
+  }
+
+  function handleDemoClose() {
+    if (demoState.animationFrame) {
+      cancelAnimationFrame(demoState.animationFrame);
+    }
+    const modal = $('#demo-animation-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+    resetDemo();
+  }
+
+  // Bind demo controls
+  function bindDemoControls() {
+    $('#demo-play-pause')?.addEventListener('click', handlePlayPause);
+    $('#demo-restart')?.addEventListener('click', handleDemoRestart);
+    $('#demo-close')?.addEventListener('click', handleDemoClose);
+  }
+
+  // =========================================
   //  BOOT
   // =========================================
   document.addEventListener('DOMContentLoaded', async () => {
     await initFirebaseSync(); // pull shared data before seeding/rendering
     seedDemoData();
     init();
+    bindDemoButton();
+    bindDemoControls();
   });
 })();
