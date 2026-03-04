@@ -2608,44 +2608,19 @@
           map: demoMap
         });
 
-        // Create car marker with better icon (initially hidden at origin)
+        // Create simple circle marker (initially hidden at origin)
         demoCarMarker = new google.maps.Marker({
           position: DEMO_DATA.route.originCoords,
           map: demoMap,
           icon: {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-                <defs>
-                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-                    <feOffset dx="0" dy="2" result="offsetblur"/>
-                    <feComponentTransfer>
-                      <feFuncA type="linear" slope="0.3"/>
-                    </feComponentTransfer>
-                    <feMerge>
-                      <feMergeNode/>
-                      <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                  </filter>
-                </defs>
-                <g filter="url(#shadow)">
-                  <!-- Outer circle (blue glow) -->
-                  <circle cx="24" cy="24" r="20" fill="#0f62fe" opacity="0.3"/>
-                  <!-- Main circle -->
-                  <circle cx="24" cy="24" r="16" fill="#0f62fe" stroke="#fff" stroke-width="2.5"/>
-                  <!-- Car shape (simplified, points up/north by default) -->
-                  <path d="M24 12 L28 20 L28 28 L26 30 L22 30 L20 28 L20 20 Z" fill="#fff" opacity="0.9"/>
-                  <!-- Direction indicator (arrow) -->
-                  <path d="M24 10 L27 16 L21 16 Z" fill="#fff"/>
-                </g>
-              </svg>
-            `),
-            scaledSize: new google.maps.Size(48, 48),
-            anchor: new google.maps.Point(24, 24),
-            rotation: 0
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: '#0f62fe',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 3
           },
-          zIndex: 1000,
-          optimized: false
+          zIndex: 1000
         });
 
         demoCarMarker.setVisible(false);
@@ -2777,62 +2752,16 @@
 
       updateDemoMetrics(currentDistance, currentCars, currentCO2, currentCost, scene.metrics.parking);
 
-      // Animate car marker along actual route (Uber-style)
+      // Animate circle marker along actual route (simple and smooth)
       if (demoCarMarker && demoRouteCoordinates.length > 0) {
         demoCarMarker.setVisible(true);
         const routeIndex = Math.floor(progress * (demoRouteCoordinates.length - 1));
         const position = demoRouteCoordinates[routeIndex];
 
-        // Smooth animation with easing
+        // Simple smooth animation - just move the circle
         if (position) {
           demoCarMarker.setPosition(position);
-
-          // Calculate heading for car rotation (look ahead several points for smoother rotation)
-          const lookAheadPoints = 5;
-          const nextIndex = Math.min(routeIndex + lookAheadPoints, demoRouteCoordinates.length - 1);
-
-          if (nextIndex > routeIndex) {
-            const nextPos = demoRouteCoordinates[nextIndex];
-            const heading = google.maps.geometry.spherical.computeHeading(position, nextPos);
-
-            // Only update rotation if change is significant (>15 degrees) to reduce spinning
-            const headingDiff = Math.abs(heading - lastCarHeading);
-            if (headingDiff > 15 || lastCarHeading === 0) {
-              lastCarHeading = heading;
-
-              // Update car icon with smooth rotation
-              const currentIcon = demoCarMarker.getIcon();
-              demoCarMarker.setIcon({
-                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-                    <defs>
-                      <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
-                        <feOffset dx="0" dy="2" result="offsetblur"/>
-                        <feComponentTransfer>
-                          <feFuncA type="linear" slope="0.3"/>
-                        </feComponentTransfer>
-                        <feMerge>
-                          <feMergeNode/>
-                          <feMergeNode in="SourceGraphic"/>
-                        </feMerge>
-                      </filter>
-                    </defs>
-                    <g transform="rotate(${heading} 24 24)" filter="url(#shadow)">
-                      <circle cx="24" cy="24" r="20" fill="#0f62fe" opacity="0.3"/>
-                      <circle cx="24" cy="24" r="16" fill="#0f62fe" stroke="#fff" stroke-width="2.5"/>
-                      <path d="M24 12 L28 20 L28 28 L26 30 L22 30 L20 28 L20 20 Z" fill="#fff" opacity="0.9"/>
-                      <path d="M24 10 L27 16 L21 16 Z" fill="#fff"/>
-                    </g>
-                  </svg>
-                `),
-                scaledSize: new google.maps.Size(48, 48),
-                anchor: new google.maps.Point(24, 24)
-              });
-            }
-          }
-
-          // Pan map to follow car (smooth)
+          // Pan map to follow marker (smooth)
           demoMap.panTo(position);
         }
       }
