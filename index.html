@@ -505,8 +505,32 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCbj0WiyEgqdgYT6gcjxWp6beKf-F_ExuQ&libraries=places,geometry"></script>
+  <!-- Configuration (contains API keys - gitignored) -->
+  <!-- SETUP: Copy config.example.js to config.js and fill in your keys -->
+  <script src="config.js"></script>
+
+  <!-- Google Maps API (loaded dynamically from config) -->
+  <script>
+    (function() {
+      if (!window.CONFIG || !window.CONFIG.googleMapsApiKey) {
+        console.error('❌ Google Maps API key not found in config.js');
+        console.error('📝 Setup instructions:');
+        console.error('   1. Copy config.example.js to config.js');
+        console.error('   2. Fill in your Google Maps API key');
+        console.error('   3. Reload the page');
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${window.CONFIG.googleMapsApiKey}&libraries=places,geometry`;
+      script.async = false; // Load synchronously before app.js
+      script.onerror = function() {
+        console.error('❌ Failed to load Google Maps API. Check your API key in config.js');
+      };
+      document.head.appendChild(script);
+    })();
+  </script>
+
   <script src="app.js"></script>
 </body>
 

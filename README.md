@@ -31,11 +31,14 @@ RideMatch connects IBM employees who want to share rides for their daily commute
 
 A comprehensive security audit (2026-03-03) identified **critical vulnerabilities**:
 
-- 🔴 **Exposed API keys** in source code
-- 🔴 **Plain-text password storage**
-- 🔴 **No server-side validation**
+- ✅ **Exposed API keys** ~~in source code~~ → **FIXED** (now using config.js)
+- 🔴 **Plain-text password storage** → In progress (Phase 2)
+- 🔴 **No server-side validation** → Planned (Phase 3)
 
 **Status:** Security remediation in progress (Sprint 001)
+- **Phase 1 (✅ COMPLETE):** Environment configuration
+- **Phase 2 (🔄 NEXT):** Firebase Authentication migration
+- **Phase 3 (📋 PLANNED):** Firebase Security Rules
 
 See [Security Audit Report](.centaur/audit/security-audit-2026-03-03.md) for details.
 
@@ -93,36 +96,83 @@ CarPooling/
 
 ### Setup
 
-**⚠️ Note:** Full setup instructions coming soon. Current version requires manual configuration.
+**✅ Updated:** Configuration now uses environment-based setup (no hardcoded keys in source!)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/[username]/CarPooling.git
-   cd CarPooling
-   ```
+#### 1. Clone the repository
+```bash
+git clone https://github.com/[username]/CarPooling.git
+cd CarPooling
+```
 
-2. **Configure Firebase** (TEMPORARY — will move to `.env`)
-   - Create Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-   - Enable Realtime Database
-   - Copy configuration to `app.js` lines 20-29
+#### 2. Configure API Keys
 
-3. **Configure Google Maps**
-   - Get API key from [Google Cloud Console](https://console.cloud.google.com)
-   - Enable Maps JavaScript API, Places API, Directions API, Geometry API
-   - Add key to `index.html` script tag
+**Copy the configuration template:**
+```bash
+cp config.example.js config.js
+```
 
-4. **Serve locally**
-   ```bash
-   # Simple HTTP server
-   python -m http.server 8000
-   # or
-   npx serve .
-   ```
+**Fill in your API keys in `config.js`:**
 
-5. **Open in browser**
-   ```
-   http://localhost:8000
-   ```
+```javascript
+window.CONFIG = {
+  firebase: {
+    apiKey: "YOUR_FIREBASE_API_KEY",
+    authDomain: "your-project.firebaseapp.com",
+    // ... (see config.example.js for full template)
+  },
+  googleMapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY"
+};
+```
+
+#### 3. Get Firebase Credentials
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Create new project (or use existing)
+3. **Enable Realtime Database:**
+   - Build → Realtime Database → Create Database
+   - Start in **Test Mode** (temporary — we'll add Security Rules in Phase 3)
+4. **Get configuration:**
+   - Project Settings (⚙️) → General
+   - Scroll to "Your apps" → Select Web app (</> icon)
+   - Copy the `firebaseConfig` object values into `config.js`
+
+#### 4. Get Google Maps API Key
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create new project (or use existing)
+3. **Enable required APIs:**
+   - Maps JavaScript API
+   - Places API
+   - Directions API
+   - Geometry API
+4. **Create API key:**
+   - APIs & Services → Credentials → Create Credentials → API Key
+   - Copy the key into `config.js` → `googleMapsApiKey`
+5. **(Recommended) Restrict the key:**
+   - Edit API key → Application restrictions → HTTP referrers
+   - Add `http://localhost:*` for development
+   - Add your production domain later
+
+#### 5. Serve Locally
+
+```bash
+# Option 1: Python (if installed)
+python -m http.server 8000
+
+# Option 2: Node.js serve package
+npx serve .
+
+# Option 3: VS Code Live Server extension
+# Right-click index.html → Open with Live Server
+```
+
+#### 6. Open in Browser
+
+```
+http://localhost:8000
+```
+
+**✅ You should see the app load without console errors!**
 
 ### First Use
 

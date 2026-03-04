@@ -2,7 +2,7 @@
 
 > **Purpose:** Track system health, metrics, and progress over time (inspired by Centaur methodology)
 >
-> **Last Updated:** 2026-03-03
+> **Last Updated:** 2026-03-04
 > **Current Sprint:** Foundation & Security (Sprint 001)
 
 ---
@@ -16,9 +16,14 @@
 4. 🏗️ **MEDIUM:** Plan code modularization strategy
 
 ### Sprint Status
-**Status:** 🟢 In Progress (Day 1)
+**Status:** 🟢 In Progress (Day 2 - Phase 1 Complete!)
 **Confidence:** High (clear path forward)
 **Blockers:** None
+
+**Progress:**
+- ✅ Phase 1: Environment Configuration (COMPLETE)
+- 🔄 Phase 2: Firebase Authentication (NEXT)
+- 📋 Phase 3: Security Rules (PLANNED)
 
 ---
 
@@ -46,12 +51,12 @@
 
 | Category | Status | Priority | Notes |
 |----------|--------|----------|-------|
-| **Exposed API Keys** | 🔴 **CRITICAL** | P0 | Firebase config in source |
-| **Password Storage** | 🔴 **CRITICAL** | P0 | Plain-text in localStorage |
-| **Server Validation** | 🔴 **CRITICAL** | P0 | Client-side only |
+| **Exposed API Keys** | ✅ **FIXED** | P0 | ~~Firebase config in source~~ → Now using config.js (gitignored) |
+| **Password Storage** | 🔴 **CRITICAL** | P0 | Plain-text in localStorage → Phase 2 |
+| **Server Validation** | 🔴 **CRITICAL** | P0 | Client-side only → Phase 3 |
 | **XSS Protection** | 🟡 Partial | P1 | escapeHtml() exists, needs audit |
-| **Rate Limiting** | 🔴 None | P1 | Unbounded requests |
-| **Session Security** | 🟡 Basic | P2 | localStorage-based |
+| **Rate Limiting** | 🔴 None | P1 | Unbounded requests → Phase 3 |
+| **Session Security** | 🟡 Basic | P2 | localStorage-based → Phase 2 (Firebase Auth) |
 | **CORS Configuration** | ❓ Unknown | P2 | Needs verification |
 
 ### Feature Health (9 Features)
@@ -127,12 +132,17 @@
 
 ### Week 1: Critical Security (2026-03-03 → 2026-03-10)
 
-#### Day 1-2: Environment Configuration & Documentation
-- [ ] Create `.env.example` with Firebase config template
-- [ ] Add `.gitignore` entry for `.env`
-- [ ] Create README.md with setup instructions
-- [ ] Document security considerations
-- [ ] Update `app.js` to read from environment variables
+#### Day 1-2: Environment Configuration & Documentation ✅ COMPLETE
+- [x] Create `config.example.js` with Firebase config template
+- [x] Add `.gitignore` entry for `config.js`
+- [x] Create README.md with setup instructions
+- [x] Document security considerations
+- [x] Update `app.js` to read from window.CONFIG
+- [x] Update `index.html` to load config and Maps API dynamically
+- [x] Verify no hardcoded API keys remain in source
+
+**Completed:** 2026-03-04 (Session 002)
+**Result:** ✅ All API keys now externalized, security improved
 
 #### Day 3-4: Authentication Security
 - [ ] Decision: bcrypt hashing vs Firebase Auth (create ADR)

@@ -1,7 +1,8 @@
-# Environment variables
+# Environment variables & configuration
 .env
 .env.local
 .env.*.local
+config.js
 
 # Claude Code settings (local IDE configuration)
 .claude/

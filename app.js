@@ -7,26 +7,16 @@
 
   // =========================================
   //  FIREBASE CONFIG
-  //  Fill this in to enable real-time sync across
-  //  different devices / browsers.
-  //  Leave as null to run in offline/local mode.
+  //  ⚠️ SECURITY: Configuration loaded from config.js (gitignored)
   //
-  //  Setup (free):
-  //  1. console.firebase.google.com → New project
-  //  2. Build → Realtime Database → Create database
-  //     (Start in TEST mode)
-  //  3. Project Settings → Your apps → </> → copy config
+  //  Setup:
+  //  1. Copy config.example.js to config.js
+  //  2. Fill in your Firebase project credentials
+  //  3. Load config.js in index.html before app.js
+  //
+  //  See README.md for complete setup instructions
   // =========================================
-  const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyDavjrx2ZmJ5dQzw3bMm-lB-MPqAny6CL8",
-    authDomain: "ridematch-test-3eebc.firebaseapp.com",
-    databaseURL: "https://ridematch-test-3eebc-default-rtdb.firebaseio.com",
-    projectId: "ridematch-test-3eebc",
-    storageBucket: "ridematch-test-3eebc.firebasestorage.app",
-    messagingSenderId: "624217382244",
-    appId: "1:624217382244:web:204c143d76b0ea01646e71",
-    measurementId: "G-WRXCEM38WV",
-  };
+  const FIREBASE_CONFIG = window.CONFIG ? window.CONFIG.firebase : null;
 
   const FIREBASE_SYNC_KEYS = ['users', 'rides', 'requests', 'notifications', 'ratings', 'messages'];
   let firebaseDB = null;
@@ -92,7 +82,7 @@
   };
 
   // IBM AFZ Building F30, Heredia, Costa Rica
-  const IBM_LOCATION = { lat: 9.9981, lng: -84.1315 };
+  const IBM_LOCATION = window.CONFIG ? window.CONFIG.ibmLocation : { lat: 9.9981, lng: -84.1315 };
 
   const DARK_MAP_STYLES = [
     { elementType: 'geometry', stylers: [{ color: '#1d1d2e' }] },
