@@ -236,15 +236,20 @@
       return;
     }
 
-    // DEMO MODE: Only allow @test.com emails
-    if (!email.endsWith('@test.com')) {
-      toast('⚠️ DEMO MODE: Please use @test.com email (e.g., yourname@test.com)', 'error');
+    // DEMO MODE: Only allow specific 28 demo accounts
+    const validDemoUsers = [];
+    for (let i = 1; i <= 28; i++) {
+      validDemoUsers.push(`User${i}@test.com`.toLowerCase());
+    }
+
+    if (!validDemoUsers.includes(email.toLowerCase())) {
+      toast('⚠️ DEMO MODE: Please select one of the 28 available demo accounts (User1@test.com - User28@test.com)', 'error');
       return;
     }
 
-    // DEMO MODE: Only allow Test123 password
-    if (password !== 'Test123') {
-      toast('⚠️ DEMO MODE: Password must be exactly "Test123"', 'error');
+    // DEMO MODE: Only allow Password123
+    if (password !== 'Password123') {
+      toast('⚠️ DEMO MODE: Password must be exactly "Password123"', 'error');
       return;
     }
 
@@ -314,15 +319,20 @@
       return;
     }
 
-    // DEMO MODE: Only allow @test.com emails
-    if (!email.endsWith('@test.com')) {
-      toast('⚠️ DEMO MODE: Please use @test.com email (e.g., yourname@test.com)', 'error');
+    // DEMO MODE: Only allow specific 28 demo accounts
+    const validDemoUsers = [];
+    for (let i = 1; i <= 28; i++) {
+      validDemoUsers.push(`User${i}@test.com`.toLowerCase());
+    }
+
+    if (!validDemoUsers.includes(email.toLowerCase())) {
+      toast('⚠️ DEMO MODE: Please select one of the 28 available demo accounts (User1@test.com - User28@test.com)', 'error');
       return;
     }
 
-    // DEMO MODE: Only allow Test123 password
-    if (password !== 'Test123') {
-      toast('⚠️ DEMO MODE: Password must be exactly "Test123"', 'error');
+    // DEMO MODE: Only allow Password123
+    if (password !== 'Password123') {
+      toast('⚠️ DEMO MODE: Password must be exactly "Password123"', 'error');
       return;
     }
 

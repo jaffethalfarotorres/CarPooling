@@ -17,7 +17,7 @@
 <body>
   <!-- ===== DEMO WARNING BANNER ===== -->
   <div id="demo-banner" class="demo-banner">
-    <span class="demo-banner-text">⚠️ <strong>DEMO MODE:</strong> Use yourname@test.com / Password: Test123</span>
+    <span class="demo-banner-text">⚠️ <strong>DEMO MODE:</strong> 28 seats available | Use User1-28@test.com / Password: Password123</span>
     <button id="close-demo-banner" class="demo-banner-close" onclick="closeDemoBanner()" aria-label="Close banner">✕</button>
   </div>
 
@@ -37,23 +37,93 @@
         <p class="brand-subtitle">Enterprise Carpooling Solution</p>
       </div>
 
-      <!-- Login Form -->
-      <div id="login-form" class="auth-form glass-card">
-        <h2>Welcome Back</h2>
-        <p class="form-desc">Demo: Use @test.com email</p>
+      <!-- Demo Access Form -->
+      <div id="login-form" class="auth-form glass-card" style="max-width: 600px;">
+        <h2>🎬 Demo Access</h2>
+        <p class="form-desc" style="margin-bottom: 1.5rem;">Limited to 28 demo seats — Choose any available account below</p>
+
+        <div style="background: linear-gradient(135deg, rgba(15, 98, 254, 0.1) 0%, rgba(66, 190, 101, 0.1) 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid rgba(15, 98, 254, 0.2);">
+          <h3 style="font-size: 1.125rem; margin: 0 0 1rem 0; color: var(--text-primary);">📋 Available Demo Accounts:</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; font-family: monospace; font-size: 0.9rem;">
+            <div>User1@test.com</div>
+            <div>User2@test.com</div>
+            <div>User3@test.com</div>
+            <div>User4@test.com</div>
+            <div>User5@test.com</div>
+            <div>User6@test.com</div>
+            <div>User7@test.com</div>
+            <div>User8@test.com</div>
+            <div>User9@test.com</div>
+            <div>User10@test.com</div>
+            <div>User11@test.com</div>
+            <div>User12@test.com</div>
+            <div>User13@test.com</div>
+            <div>User14@test.com</div>
+            <div>User15@test.com</div>
+            <div>User16@test.com</div>
+            <div>User17@test.com</div>
+            <div>User18@test.com</div>
+            <div>User19@test.com</div>
+            <div>User20@test.com</div>
+            <div>User21@test.com</div>
+            <div>User22@test.com</div>
+            <div>User23@test.com</div>
+            <div>User24@test.com</div>
+            <div>User25@test.com</div>
+            <div>User26@test.com</div>
+            <div>User27@test.com</div>
+            <div>User28@test.com</div>
+          </div>
+          <p style="margin: 1rem 0 0 0; font-weight: 600; color: var(--ibm-blue-light); font-size: 1rem;">
+            🔑 Password for all accounts: <span style="background: rgba(0,0,0,0.3); padding: 0.25rem 0.75rem; border-radius: 6px; font-family: monospace;">Password123</span>
+          </p>
+        </div>
+
         <div class="form-group">
-          <label for="login-email">Email</label>
-          <input type="email" id="login-email" placeholder="yourname@test.com" autocomplete="email" />
+          <label for="login-email">Select Email</label>
+          <select id="login-email" style="width: 100%; padding: 0.875rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 1rem;">
+            <option value="">-- Choose a demo account --</option>
+            <option value="User1@test.com">User1@test.com</option>
+            <option value="User2@test.com">User2@test.com</option>
+            <option value="User3@test.com">User3@test.com</option>
+            <option value="User4@test.com">User4@test.com</option>
+            <option value="User5@test.com">User5@test.com</option>
+            <option value="User6@test.com">User6@test.com</option>
+            <option value="User7@test.com">User7@test.com</option>
+            <option value="User8@test.com">User8@test.com</option>
+            <option value="User9@test.com">User9@test.com</option>
+            <option value="User10@test.com">User10@test.com</option>
+            <option value="User11@test.com">User11@test.com</option>
+            <option value="User12@test.com">User12@test.com</option>
+            <option value="User13@test.com">User13@test.com</option>
+            <option value="User14@test.com">User14@test.com</option>
+            <option value="User15@test.com">User15@test.com</option>
+            <option value="User16@test.com">User16@test.com</option>
+            <option value="User17@test.com">User17@test.com</option>
+            <option value="User18@test.com">User18@test.com</option>
+            <option value="User19@test.com">User19@test.com</option>
+            <option value="User20@test.com">User20@test.com</option>
+            <option value="User21@test.com">User21@test.com</option>
+            <option value="User22@test.com">User22@test.com</option>
+            <option value="User23@test.com">User23@test.com</option>
+            <option value="User24@test.com">User24@test.com</option>
+            <option value="User25@test.com">User25@test.com</option>
+            <option value="User26@test.com">User26@test.com</option>
+            <option value="User27@test.com">User27@test.com</option>
+            <option value="User28@test.com">User28@test.com</option>
+          </select>
         </div>
         <div class="form-group">
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+          <label for="login-password">Password (same for all)</label>
+          <input type="password" id="login-password" value="Password123" autocomplete="current-password" readonly style="opacity: 0.7;" />
         </div>
-        <button id="login-btn" class="btn btn-primary btn-full">Sign In</button>
-        <p class="auth-switch">Don't have an account? <a href="#" id="show-register">Create one</a></p>
+        <button id="login-btn" class="btn btn-primary btn-full">🚀 Access Demo</button>
+        <p style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted); text-align: center;">
+          💡 After login, check the <strong>Impact</strong> tab and click <strong>"▶ Launch Demo"</strong> for the interactive animation!
+        </p>
       </div>
 
-      <!-- Register Form -->
+      <!-- Register Form (Hidden for demo) -->
       <div id="register-form" class="auth-form glass-card hidden">
         <h2>Create Account</h2>
         <p class="form-desc">Demo: Use @test.com email / Test123</p>
