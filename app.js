@@ -238,8 +238,8 @@
       return;
     }
 
-    if (!email.endsWith('@ibm.com')) {
-      toast('Please use your IBM email (@ibm.com)', 'error');
+    if (!email.includes('@')) {
+      toast('Please enter a valid email address', 'error');
       return;
     }
 
